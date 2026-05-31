@@ -10,6 +10,7 @@ app.disable('x-powered-by');
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   if (req.path.startsWith('/api/')) res.setHeader('Cache-Control', 'no-store');
   next();
 });
@@ -54,6 +55,7 @@ const homeworkSchema = new mongoose.Schema({
   description: { type: String, default: "" },
   dueDate: { type: String, default: "" },
   links: { type: String, default: "" },
+  comments: { type: Array, default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
@@ -421,6 +423,12 @@ app.post("/api/backup/import", async (req, res) => {
         description: String(item.description || ""),
         dueDate: String(item.dueDate || ""),
         links: String(item.links || ""),
+        comments: Array.isArray(item.comments) ? item.comments.slice(0, 100).map(c => ({
+          username: String(c.username || "").slice(0, 120),
+          role: String(c.role || "").slice(0, 30),
+          text: String(c.text || "").slice(0, 1500),
+          createdAt: c.createdAt ? new Date(c.createdAt) : new Date()
+        })) : [],
         createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
         updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date()
       })).filter(item => item.subjectName && item.groupName && item.title);
@@ -470,7 +478,7 @@ app.post("/api/homework-list", async (req, res) => {
 
     if (user.role === "student") {
       if (!user.groupName) return res.json({ items: [] });
-      filter.groupName = user.groupName;
+      filter.groupName = String(user.groupName || "").trim();
     } else if (user.role !== "teacher") {
       return res.status(403).json({ message: "Нет доступа к домашним заданиям" });
     }
@@ -529,6 +537,52 @@ app.post("/api/homework-save", async (req, res) => {
     res.json({ message: "Домашнее задание добавлено", item });
   } catch (error) {
     res.status(500).json({ message: "Ошибка сохранения домашнего задания", error: error.message });
+  }
+});
+
+
+app.post("/api/homework-comment", async (req, res) => {
+  try {
+    const user = req.body.user || {};
+    if (!user || !user.role) {
+      return res.status(403).json({ message: "Нет доступа" });
+    }
+
+    const id = String(req.body.id || "").trim();
+    const text = String(req.body.text || "").trim().slice(0, 1500);
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Некорректный ID задания" });
+    }
+    if (!text) {
+      return res.status(400).json({ message: "Введите комментарий" });
+    }
+
+    const item = await Homework.findById(id);
+    if (!item) return res.status(404).json({ message: "Задание не найдено" });
+
+    if (user.role === "student" && String(item.groupName || "").trim() !== String(user.groupName || "").trim()) {
+      return res.status(403).json({ message: "Нельзя комментировать задание чужой группы" });
+    }
+    if (user.role !== "teacher" && user.role !== "student") {
+      return res.status(403).json({ message: "Нет доступа" });
+    }
+
+    item.comments = Array.isArray(item.comments) ? item.comments : [];
+    item.comments.push({
+      username: String(user.username || "").slice(0, 120),
+      role: String(user.role || "").slice(0, 30),
+      text,
+      createdAt: new Date()
+    });
+    if (item.comments.length > 100) item.comments = item.comments.slice(item.comments.length - 100);
+    item.updatedAt = new Date();
+    await item.save();
+
+    await addActivity(user, "Комментарий к ДЗ", item.subjectName + " / " + item.groupName + ": " + item.title);
+    res.json({ message: "Комментарий добавлен" });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка комментария к ДЗ", error: error.message });
   }
 });
 
