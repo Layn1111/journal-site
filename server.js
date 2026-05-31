@@ -6,6 +6,13 @@ const path = require("path");
 require("dotenv").config();
 
 const app = express();
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  if (req.path.startsWith('/api/')) res.setHeader('Cache-Control', 'no-store');
+  next();
+});
 app.use(cors());
 app.use(express.json({ limit: "25mb" }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -266,7 +273,7 @@ app.post("/api/group-user-delete", async (req, res) => {
       return res.status(400).json({ message: "Не указан логин для удаления" });
     }
 
-    if (username === "teacher") {
+    if (username === "teacher" || username === TEACHER_USERNAME) {
       return res.status(400).json({ message: "Нельзя удалить логин учителя" });
     }
 
@@ -304,7 +311,7 @@ app.delete("/api/group-access/:username", async (req, res) => {
       return res.status(400).json({ message: "Не указан логин для удаления" });
     }
 
-    if (username === "teacher") {
+    if (username === "teacher" || username === TEACHER_USERNAME) {
       return res.status(400).json({ message: "Нельзя удалить логин учителя" });
     }
 
