@@ -50,6 +50,7 @@ th.name,td.name{width:220px!important;min-width:220px!important;max-width:220px!
 .homework-teacher-form{border-radius:16px}.homework-teacher-form h3{margin-top:0}.student-readonly .homework-card{border-left:4px solid var(--primary)}
 
 </style>
+<!-- theme fix: preserve body classes when switching themes -->
 </head>
 <body class="theme-light app-locked">
 <div id="authScreen">
@@ -121,7 +122,7 @@ document.querySelectorAll('[data-collapse]').forEach(function(t){t.onclick=funct
 tableArea.onclick=function(e){var t=e.target,a=t&&t.getAttribute&&t.getAttribute('data-action');if(!a)return;if(a==='set-status')setStatus(t.getAttribute('data-student'),t.getAttribute('data-date'),t.getAttribute('data-status'));if(a==='delete-date')deleteDate(t.getAttribute('data-date'));if(a==='rename-student')renameStudent(t.getAttribute('data-student'));if(a==='delete-student')deleteStudent(t.getAttribute('data-student'));if(a==='fill-date')fillDate(t.getAttribute('data-date'),t.getAttribute('data-status'))};
 tableArea.onchange=function(e){var t=e.target;if(t&&t.getAttribute('data-action')==='grade')setGrade(t.getAttribute('data-student'),t.getAttribute('data-date'),t.value)};
 tableArea.oninput=function(e){var t=e.target;if(t&&t.getAttribute('data-action')==='topic')setTopic(t.getAttribute('data-date'),t.value)};
-function applyTheme(theme){var a=['theme-light','theme-dark','theme-midnight','theme-blue','theme-violet','theme-night','theme-emerald','theme-custom'];if(a.indexOf(theme)===-1)theme='theme-light';document.body.className=theme;themeSelect.value=theme;if(theme==='theme-custom')applyCustomColors();try{localStorage.setItem(THEME_KEY,theme)}catch(e){}renderAnalytics()}
+function applyTheme(theme){var a=['theme-light','theme-dark','theme-midnight','theme-blue','theme-violet','theme-night','theme-emerald','theme-custom'];if(a.indexOf(theme)===-1)theme='theme-light';a.forEach(function(cls){document.body.classList.remove(cls)});document.body.classList.add(theme);themeSelect.value=theme;if(theme==='theme-custom')applyCustomColors();try{localStorage.setItem(THEME_KEY,theme)}catch(e){}if(typeof renderAnalytics==='function')renderAnalytics()}
 function hexToRgb(hex){hex=String(hex||'#000000').replace('#','');if(hex.length===3)hex=hex.split('').map(function(x){return x+x}).join('');var n=parseInt(hex,16);return{r:(n>>16)&255,g:(n>>8)&255,b:n&255}}
 function applyCustomColors(){var c1=document.getElementById('customColor1').value,c2=document.getElementById('customColor2').value,c3=document.getElementById('customColor3').value,r1=hexToRgb(c2),r2=hexToRgb(c3);document.body.style.setProperty('--custom-c1',c1);document.body.style.setProperty('--custom-c2',c2);document.body.style.setProperty('--custom-c3',c3);document.body.style.setProperty('--custom-primary',c3);document.body.style.setProperty('--custom-a','rgba('+r1.r+','+r1.g+','+r1.b+',.26)');document.body.style.setProperty('--custom-b','rgba('+r2.r+','+r2.g+','+r2.b+',.24)')}
 function saveCustomColors(){var obj={c1:document.getElementById('customColor1').value,c2:document.getElementById('customColor2').value,c3:document.getElementById('customColor3').value};try{localStorage.setItem('attendanceDiaryCustomTheme',JSON.stringify(obj))}catch(e){}}
