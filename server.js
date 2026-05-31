@@ -40,6 +40,20 @@ const activitySchema = new mongoose.Schema({
 
 const Activity = mongoose.model("Activity", activitySchema);
 
+const homeworkSchema = new mongoose.Schema({
+  subjectName: { type: String, required: true },
+  groupName: { type: String, required: true },
+  title: { type: String, required: true },
+  description: { type: String, default: "" },
+  dueDate: { type: String, default: "" },
+  links: { type: String, default: "" },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const Homework = mongoose.model("Homework", homeworkSchema);
+
+
 async function addActivity(user, action, details) {
   try {
     await Activity.create({
@@ -355,11 +369,16 @@ app.post("/api/backup/export", async (req, res) => {
       .select("username groupName fullName -_id")
       .sort({ groupName: 1, username: 1 });
 
+    const homework = await Homework.find()
+      .sort({ dueDate: 1, subjectName: 1, groupName: 1 })
+      .lean();
+
     res.json({
-      version: 2,
+      version: 3,
       exportedAt: new Date().toISOString(),
       data: state.data,
-      groupUsers
+      groupUsers,
+      homework
     });
   } catch (error) {
     res.status(500).json({ message: "Ошибка создания резервной копии", error: error.message });
@@ -386,7 +405,22 @@ app.post("/api/backup/import", async (req, res) => {
       { upsert: true, new: true }
     );
 
-    await addActivity(user, "Восстановлена резервная копия", "Журнал заменён данными из файла");
+    if (Array.isArray(backup.homework)) {
+      await Homework.deleteMany({});
+      const cleanHomework = backup.homework.map(item => ({
+        subjectName: String(item.subjectName || ""),
+        groupName: String(item.groupName || ""),
+        title: String(item.title || ""),
+        description: String(item.description || ""),
+        dueDate: String(item.dueDate || ""),
+        links: String(item.links || ""),
+        createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+        updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date()
+      })).filter(item => item.subjectName && item.groupName && item.title);
+      if (cleanHomework.length) await Homework.insertMany(cleanHomework);
+    }
+
+    await addActivity(user, "Восстановлена резервная копия", "Журнал и домашние задания заменены данными из файла");
     res.json({ message: "Резервная копия восстановлена" });
   } catch (error) {
     res.status(500).json({ message: "Ошибка восстановления резервной копии", error: error.message });
@@ -418,6 +452,90 @@ app.post("/api/activity-add", async (req, res) => {
     res.json({ message: "Записано" });
   } catch (error) {
     res.status(500).json({ message: "Ошибка записи истории", error: error.message });
+  }
+});
+
+
+app.post("/api/homework-list", async (req, res) => {
+  try {
+    const user = req.body.user || {};
+    const filter = {};
+
+    if (user.role === "student") {
+      if (!user.groupName) return res.json({ items: [] });
+      filter.groupName = user.groupName;
+    } else if (user.role !== "teacher") {
+      return res.status(403).json({ message: "Нет доступа к домашним заданиям" });
+    }
+
+    if (req.body.subjectName) filter.subjectName = String(req.body.subjectName).trim();
+    if (req.body.groupName && user.role === "teacher") filter.groupName = String(req.body.groupName).trim();
+
+    const items = await Homework.find(filter)
+      .sort({ dueDate: 1, subjectName: 1, groupName: 1, createdAt: -1 })
+      .lean();
+
+    res.json({ items });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка загрузки домашнего задания", error: error.message });
+  }
+});
+
+app.post("/api/homework-save", async (req, res) => {
+  try {
+    const user = req.body.user || {};
+    if (user.role !== "teacher") {
+      return res.status(403).json({ message: "Добавлять домашнее задание может только учитель" });
+    }
+
+    const subjectName = String(req.body.subjectName || "").trim();
+    const groupName = String(req.body.groupName || "").trim();
+    const title = String(req.body.title || "").trim();
+    const description = String(req.body.description || "").trim();
+    const dueDate = String(req.body.dueDate || "").trim();
+    const links = String(req.body.links || "").trim();
+
+    if (!subjectName || !groupName || !title) {
+      return res.status(400).json({ message: "Заполните предмет, группу и название задания" });
+    }
+
+    let item;
+    if (req.body.id) {
+      item = await Homework.findByIdAndUpdate(
+        req.body.id,
+        { subjectName, groupName, title, description, dueDate, links, updatedAt: new Date() },
+        { new: true }
+      );
+      if (!item) return res.status(404).json({ message: "Задание не найдено" });
+      await addActivity(user, "Обновлено ДЗ", subjectName + " / " + groupName + ": " + title);
+      return res.json({ message: "Домашнее задание обновлено", item });
+    }
+
+    item = await Homework.create({ subjectName, groupName, title, description, dueDate, links });
+    await addActivity(user, "Добавлено ДЗ", subjectName + " / " + groupName + ": " + title);
+    res.json({ message: "Домашнее задание добавлено", item });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка сохранения домашнего задания", error: error.message });
+  }
+});
+
+app.post("/api/homework-delete", async (req, res) => {
+  try {
+    const user = req.body.user || {};
+    if (user.role !== "teacher") {
+      return res.status(403).json({ message: "Удалять домашнее задание может только учитель" });
+    }
+
+    const id = String(req.body.id || "").trim();
+    if (!id) return res.status(400).json({ message: "Не указан ID задания" });
+
+    const item = await Homework.findByIdAndDelete(id);
+    if (!item) return res.status(404).json({ message: "Задание не найдено" });
+
+    await addActivity(user, "Удалено ДЗ", item.subjectName + " / " + item.groupName + ": " + item.title);
+    res.json({ message: "Домашнее задание удалено" });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка удаления домашнего задания", error: error.message });
   }
 });
 

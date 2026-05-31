@@ -25,6 +25,15 @@
 
 .student-tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.student-tools-grid textarea{width:100%;min-height:120px}.history-item{display:grid;grid-template-columns:180px 160px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);align-items:start}.history-item:last-child{border-bottom:0}.history-date{color:var(--muted);font-size:13px}.history-action{font-weight:800;color:var(--primary)}.history-details{font-size:14px}@media(max-width:800px){.student-tools-grid{grid-template-columns:1fr}.history-item{grid-template-columns:1fr}}
 
+
+/* --- Чище таблица и домашнее задание --- */
+.table-wrap{border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.table-wrap table th,.table-wrap table td{min-width:118px;padding:4px 5px;font-size:12px}
+.table-wrap table th.name,.table-wrap table td.name{width:220px!important;min-width:220px!important;max-width:220px!important;font-size:13px}
+.date-head{min-width:118px;gap:4px}.date-text{font-size:12px}.topic-input{min-width:110px;padding:4px 6px;font-size:11px}.date-head .small-btn{font-size:10px;padding:3px 5px}.cell-box{min-width:108px;gap:3px}.status-value{min-height:18px;padding:2px 5px;font-size:11px}.grade-row{gap:2px}.grade-icon{display:none}.grade-select{width:58px;min-width:58px;padding:3px 4px;font-size:11px}.quick-buttons{opacity:.12;max-height:0;overflow:hidden;transition:.18s ease}.table-wrap td:hover .quick-buttons,.table-wrap td:focus-within .quick-buttons{opacity:1;max-height:26px}.quick-buttons button{width:23px;height:22px;font-size:10px}.compact-table-note{margin:8px 0 0;color:var(--muted);font-size:13px}.student-readonly .quick-buttons{display:none!important}.student-readonly .grade-row{justify-content:center}.student-readonly .status-value{font-size:12px}
+.homework-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}.homework-card{border:1px solid var(--border);background:rgba(255,255,255,.06);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,.08)}.homework-card h3{margin:0 0 7px;font-size:18px}.homework-meta{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}.homework-badge{border:1px solid var(--border);background:var(--primary-soft);color:var(--primary);border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800}.homework-badge.due-soon{background:#fef3c7;color:#92400e}.homework-badge.overdue{background:#fee2e2;color:#991b1b}.homework-text{white-space:pre-wrap;color:var(--text);margin:8px 0}.homework-links{white-space:pre-wrap;font-size:13px;color:var(--muted)}.homework-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.homework-teacher-form textarea{width:100%;min-height:90px}.homework-toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.homework-toolbar>div{min-width:190px}.student-readonly .homework-teacher-form{display:none!important}
+@media(max-width:800px){.table-wrap table th,.table-wrap table td{min-width:104px}.table-wrap table th.name,.table-wrap table td.name{width:170px!important;min-width:170px!important;max-width:170px!important}.quick-buttons{opacity:1;max-height:26px}.homework-toolbar>div{min-width:0;width:100%}}
+
 </style>
 </head>
 <body class="theme-light app-locked">
@@ -55,8 +64,31 @@
 <section class="panel" id="groupAccessPanel"><h2 class="panel-title" data-collapse="groupAccessPanel"><span>3. Доступ для групп</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="groupLoginName">Логин группы</label><input id="groupLoginName" type="text" maxlength="80" placeholder="Например: group10b"></div><div><label for="groupLoginPassword">Пароль группы</label><input id="groupLoginPassword" type="text" maxlength="80" placeholder="Например: 1234"></div><div><label for="groupAccessSelect">Выбрать существующую группу</label><select id="groupAccessSelect"></select></div><div><label for="groupAccessManual">Или написать группу вручную</label><input id="groupAccessManual" type="text" maxlength="80" placeholder="Например: 10-Б"></div><button id="saveGroupAccessBtn" class="green">Создать / обновить доступ</button><button id="refreshGroupAccessBtn" class="secondary">Обновить список</button></div><p class="hint">Один логин выдаётся всей группе сразу для всех предметов. Можно выбрать группу из списка или написать её вручную. Если потом добавить группу с таким же названием в Английский, Информатику или Математику, этот же логин увидит её во всех этих предметах.</p><div id="groupAccessList" class="empty">Список доступов появится здесь.</div></div></section>
 <section class="panel" id="studentsPanel"><h2 class="panel-title" data-collapse="studentsPanel"><span>3. Студенты и занятия</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="studentName">ФИО студента</label><input id="studentName" type="text" maxlength="120" placeholder="Иванов Иван"></div><button id="addStudentBtn">Добавить студента</button><div><label for="newDate">Дата занятия</label><input id="newDate" type="date"></div><button class="green" id="addDateBtn">Добавить дату</button><button class="secondary" id="addTodayBtn">Добавить сегодня</button><div><label for="dateFrom">Период с</label><input id="dateFrom" type="date"></div><div><label for="dateTo">Период по</label><input id="dateTo" type="date"></div><button class="green" id="addPeriodBtn">Добавить период</button><button class="secondary" id="exportBtn">Скачать Excel</button></div><p class="hint">Если ученик был — поставьте оценку или оставьте пусто. Если не был — Н, У или Б.</p><div class="legend"><span class="normal">— был / оценка</span><span class="absent">Н — прогул</span><span class="excused">У — уважительная</span><span class="sick">Б — больничный</span></div></div></section>
 <section class="panel" id="toolsPanel"><h2 class="panel-title" data-collapse="toolsPanel"><span>4. Инструменты</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="filterSelect">Фильтр таблицы</label><select id="filterSelect"><option value="all">Все ученики</option><option value="absences">Есть пропуски</option><option value="bad">Есть двойки</option><option value="nogrades">Без оценок</option><option value="warnings">Предупреждения</option></select></div><button class="secondary" id="toggleWarningsBtn">Выделить проблемных</button><button class="secondary" id="backupBtn">Сохранить резервную копию</button><div><label for="restoreInput">Загрузить копию</label><input id="restoreInput" type="file" accept="application/json"></div><div><label for="scaleSelect">Система оценок</label><select id="scaleSelect"><option value="2-5">2–5</option><option value="1-10">1–10</option><option value="pass">Зачёт / незачёт</option></select></div></div></div></section>
-<section class="panel" id="tablePanel"><h2 class="panel-title" data-collapse="tablePanel"><span>5. Таблица</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="searchDate">Найти дату</label><input id="searchDate" type="date"></div><button class="secondary" id="findDateBtn">Перейти к дате</button><div><label for="searchTopic">Найти тему</label><input id="searchTopic" type="text" maxlength="80" placeholder="Например: дроби"></div><button class="secondary" id="findTopicBtn">Найти тему</button><button class="secondary" id="clearSearchBtn">Сбросить поиск</button><button class="secondary" id="toggleWarningsBtnTable" type="button">Выделить проблемных</button><button class="secondary" id="notesBtn">Заметки ученика</button></div><p class="hint">У каждой даты можно написать тему. Нажмите Н/У/Б или выберите оценку.</p><div id="tableArea"></div></div></section>
+<section class="panel" id="tablePanel"><h2 class="panel-title" data-collapse="tablePanel"><span>5. Таблица</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="searchDate">Найти дату</label><input id="searchDate" type="date"></div><button class="secondary" id="findDateBtn">Перейти к дате</button><div><label for="searchTopic">Найти тему</label><input id="searchTopic" type="text" maxlength="80" placeholder="Например: дроби"></div><button class="secondary" id="findTopicBtn">Найти тему</button><button class="secondary" id="clearSearchBtn">Сбросить поиск</button><button class="secondary" id="toggleWarningsBtnTable" type="button">Выделить проблемных</button><button class="secondary" id="notesBtn">Заметки ученика</button></div><p class="hint">У каждой даты можно написать тему. Нажмите Н/У/Б или выберите оценку.</p><p class="compact-table-note">Таблица стала компактнее: кнопки Н/У/Б появляются при наведении на ячейку, чтобы журнал не был перегружен.</p><div id="tableArea"></div></div></section>
 <section class="panel" id="analyticsPanel"><h2 class="panel-title" data-collapse="analyticsPanel"><span>6. Аналитика</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="analyticsMode">Считать по</label><select id="analyticsMode"><option value="subject">Все группы предмета</option><option value="group">Выбранная группа</option><option value="student">Один ученик</option></select></div><div><label for="analyticsStudent">Ученик</label><select id="analyticsStudent"></select></div><div><label for="analyticsView">Показать</label><select id="analyticsView"><option value="all">Оценки и посещаемость</option><option value="attendance">Только посещаемость</option><option value="grades">Только оценки</option></select></div><div><label for="periodFrom">Итог с</label><input id="periodFrom" type="date"></div><div><label for="periodTo">Итог по</label><input id="periodTo" type="date"></div><button class="secondary" id="refreshAnalyticsBtn">Обновить аналитику</button><button class="secondary" id="summaryBtn">Итоговая ведомость</button></div><div id="analyticsArea"></div><div id="summaryArea"></div></div></section>
+
+
+<section class="panel" id="homeworkPanel"><h2 class="panel-title" data-collapse="homeworkPanel"><span>Домашнее задание</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body">
+  <div class="homework-teacher-form chart-box">
+    <h3 style="margin-top:0">Добавить задание</h3>
+    <div class="row">
+      <div><label for="homeworkSubject">Предмет</label><select id="homeworkSubject"></select></div>
+      <div><label for="homeworkGroup">Группа</label><select id="homeworkGroup"></select></div>
+      <div><label for="homeworkDueDate">Срок сдачи</label><input id="homeworkDueDate" type="date"></div>
+      <div><label for="homeworkTitle">Название</label><input id="homeworkTitle" type="text" maxlength="120" placeholder="Например: §12, задачи 1–5"></div>
+    </div>
+    <div style="margin-top:10px"><label for="homeworkDescription">Описание задания</label><textarea id="homeworkDescription" placeholder="Что нужно сделать, требования, страницы, файлы..."></textarea></div>
+    <div style="margin-top:10px"><label for="homeworkLinks">Ссылки / материалы</label><textarea id="homeworkLinks" placeholder="Можно вставить ссылки, каждая с новой строки"></textarea></div>
+    <div class="row" style="margin-top:10px"><button id="saveHomeworkBtn" class="green" type="button">Добавить ДЗ</button><button id="clearHomeworkFormBtn" class="secondary" type="button">Очистить форму</button></div>
+  </div>
+  <div class="homework-toolbar" style="margin-top:14px">
+    <div><label for="homeworkFilterSubject">Фильтр по предмету</label><select id="homeworkFilterSubject"></select></div>
+    <div><label for="homeworkFilterMode">Показать</label><select id="homeworkFilterMode"><option value="actual">Актуальные</option><option value="all">Все задания</option><option value="overdue">Просроченные</option></select></div>
+    <button id="refreshHomeworkBtn" class="secondary" type="button">Обновить ДЗ</button>
+  </div>
+  <p class="hint">Учитель добавляет задания для конкретной группы. Ученики видят только задания своей группы и могут выбрать предмет.</p>
+  <div id="homeworkList" class="homework-grid"><div class="empty">Домашнее задание пока не загружено.</div></div>
+</div></section>
 
 <section class="panel" id="historyPanel"><h2 class="panel-title" data-collapse="historyPanel"><span>История изменений</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><button id="refreshHistoryBtn" class="secondary" type="button">Обновить историю</button></div><p class="hint">Здесь отображаются последние действия учителя: изменения журнала, доступов и резервных копий.</p><div id="historyList" class="empty">История пока не загружена.</div></div></section>
 </main>
@@ -138,7 +170,174 @@ function loadNoteText(){var g=getCurrentGroup(),sid=document.getElementById('not
 function saveNotes(){if(document.body.classList.contains('student-readonly'))return alert('Сохранять заметки может только учитель');var g=getCurrentGroup(),sid=document.getElementById('notesStudent').value;if(!g||!sid)return;ensureGroupFields(g);g.notes[sid]=document.getElementById('notesText').value;saveData();alert('Заметка сохранена')}
 function downloadBackup(){var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='journal_backup.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
 function restoreBackup(e){var file=e.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var obj=JSON.parse(r.result);if(!obj.subjects)throw new Error();migrateData(obj);data=obj;saveData();renderSubjects('');renderGroups('');renderTable();alert('Резервная копия загружена')}catch(err){alert('Не удалось загрузить файл')}};r.readAsText(file)}
-function exportExcel(){var s=getCurrentSubject(),g=getCurrentGroup();if(!s||!g)return alert('Выберите предмет и группу');var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:Arial,sans-serif;font-size:12pt}td,th{border:1px solid #999;padding:6px 8px}.title{font-weight:bold;background:#dde8ff}.meta{font-weight:bold;background:#f3f6ff}.name{width:260px;mso-number-format:"\\@"}.date{width:115px;text-align:center;mso-number-format:"\\@"}.mark{width:70px;text-align:center;mso-number-format:"\\@"}</style></head><body><table>';html+='<tr><td class="title">Предмет</td><td colspan="'+Math.max(1,g.dates.length+1)+'">'+excelEscape(s.name)+'</td></tr><tr><td class="title">Группа</td><td colspan="'+Math.max(1,g.dates.length+1)+'">'+excelEscape(g.name)+'</td></tr><tr><td colspan="'+(g.dates.length+2)+'"></td></tr><tr><td></td><td class="meta">Дата</td>';g.dates.forEach(function(d){html+='<td class="date">'+excelEscape(formatDate(d))+'</td>'});html+='</tr><tr><td></td><td class="meta">Тема</td>';g.dates.forEach(function(d){html+='<td>'+excelEscape(g.topics[d]||'')+'</td>'});html+='</tr><tr><th>№</th><th class="name">ФИО</th>';g.dates.forEach(function(){html+='<th class="mark"></th>'});html+='</tr>';g.students.forEach(function(st,i){html+='<tr><td>'+(i+1)+'</td><td class="name">'+excelEscape(st.name)+'</td>';g.dates.forEach(function(d){var status=g.attendance[d]&&g.attendance[d][st.id]?g.attendance[d][st.id]:'',grade=g.grades[d]&&g.grades[d][st.id]?g.grades[d][st.id]:'',cell='';if(status==='absent')cell='Н';else if(status==='excused')cell='У';else if(status==='sick')cell='Б';else if(grade)cell=grade;html+='<td class="mark">'+excelEscape(cell)+'</td>'});html+='</tr>'});html+='</table></body></html>';var blob=new Blob(['\uFEFF'+html],{type:'application/vnd.ms-excel;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=safeFileName(s.name+'_'+g.name+'_журнал')+'.xls';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
+function exportExcel(){var s=getCurrentSubject(),g=getCurrentGroup();if(!s||!g)return alert('Выберите предмет и группу');var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:Arial,sans-serif;font-size:12pt}td,th{border:1px solid #999;padding:6px 8px}.title{font-weight:bold;background:#dde8ff}.meta{font-weight:bold;background:#f3f6ff}.name{width:260px;mso-number-format:"\\@"}.date{width:115px;text-align:center;mso-number-format:"\\@"}.mark{width:70px;text-align:center;mso-number-format:"\\@"}</style></head><body><table>';html+='<tr><td class="title">Предмет</td><td colspan="'+Math.max(1,g.dates.length+1)+'">'+excelEscape(s.name)+'</td></tr><tr><td class="title">Группа</td><td colspan="'+Math.max(1,g.dates.length+1)+'">'+excelEscape(g.name)+'</td></tr><tr><td colspan="'+(g.dates.length+2)+'"></td></tr><tr><td></td><td class="meta">Дата</td>';g.dates.forEach(function(d){html+='<td class="date">'+excelEscape(formatDate(d))+'</td>'});html+='</tr><tr><td></td><td class="meta">Тема</td>';g.dates.forEach(function(d){html+='<td>'+excelEscape(g.topics[d]||'')+'</td>'});html+='</tr><tr><th>№</th><th class="name">ФИО</th>';g.dates.forEach(function(){html+='<th class="mark"></th>'});html+='</tr>';g.students.forEach(function(st,i){html+='<tr><td>'+(i+1)+'</td><td class="name">'+excelEscape(st.name)+'</td>';g.dates.forEach(function(d){var status=g.attendance[d]&&g.attendance[d][st.id]?g.attendance[d][st.id]:'',grade=g.grades[d]&&g.grades[d][st.id]?g.grades[d][st.id]:'',cell='';if(status==='absent')cell='Н';else if(status==='excused')cell='У';else if(status==='sick')cell='Б';else if(grade)cell=grade;html+='<td class="mark">'+excelEscape(cell)+'</td>'});html+='</tr>'});html+='</table>
+<script>
+/* --- Домашнее задание и более аккуратная таблица --- */
+(function(){
+  var editingHomeworkId = '';
+
+  function getUser(){
+    try{return JSON.parse(localStorage.getItem('journalCurrentUser') || 'null')}catch(e){return null}
+  }
+  function isTeacher(){var u=getUser(); return u && u.role==='teacher'}
+  function escLocal(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+  function safeJson(res){return res.text().then(function(text){try{return JSON.parse(text)}catch(e){throw new Error('Сервер вернул не JSON')}})}
+  function todayStr(){return new Date().toISOString().slice(0,10)}
+  function daysLeft(d){if(!d)return null; var a=new Date(todayStr()+'T00:00:00'),b=new Date(d+'T00:00:00'); return Math.round((b-a)/86400000)}
+  function formatDue(d){if(!d)return 'без срока'; try{return new Date(d+'T00:00:00').toLocaleDateString('ru-RU')}catch(e){return d}}
+
+  function subjectsAndGroups(){
+    var result=[];
+    (window.data && data.subjects || []).forEach(function(s){
+      (s.groups||[]).forEach(function(g){ result.push({subjectName:s.name, groupName:g.name}); });
+    });
+    return result;
+  }
+
+  function uniqueSubjectsForHomework(){
+    var map={}; subjectsAndGroups().forEach(function(x){map[x.subjectName]=true}); return Object.keys(map).sort();
+  }
+
+  function fillHomeworkSelects(){
+    var subjectSel=document.getElementById('homeworkSubject');
+    var groupSel=document.getElementById('homeworkGroup');
+    var filterSubject=document.getElementById('homeworkFilterSubject');
+    if(!filterSubject) return;
+    var pairs=subjectsAndGroups();
+    var subjects=uniqueSubjectsForHomework();
+
+    if(subjectSel){
+      var old=subjectSel.value; subjectSel.innerHTML='';
+      if(!subjects.length) subjectSel.innerHTML='<option value="">Сначала создайте предмет</option>';
+      subjects.forEach(function(name){var o=document.createElement('option'); o.value=name; o.textContent=name; subjectSel.appendChild(o)});
+      if(old) subjectSel.value=old;
+    }
+    if(groupSel){
+      var oldG=groupSel.value; groupSel.innerHTML='';
+      var selectedSubject=subjectSel ? subjectSel.value : '';
+      var groups=pairs.filter(function(x){return !selectedSubject || x.subjectName===selectedSubject}).map(function(x){return x.groupName});
+      groups=[].filter.call(groups, function(v,i,a){return a.indexOf(v)===i}).sort();
+      if(!groups.length) groupSel.innerHTML='<option value="">Сначала создайте группу</option>';
+      groups.forEach(function(name){var o=document.createElement('option'); o.value=name; o.textContent=name; groupSel.appendChild(o)});
+      if(oldG) groupSel.value=oldG;
+    }
+    var oldF=filterSubject.value; filterSubject.innerHTML='<option value="">Все предметы</option>';
+    subjects.forEach(function(name){var o=document.createElement('option'); o.value=name; o.textContent=name; filterSubject.appendChild(o)});
+    if(oldF) filterSubject.value=oldF;
+  }
+
+  function clearHomeworkForm(){
+    editingHomeworkId='';
+    ['homeworkTitle','homeworkDescription','homeworkLinks'].forEach(function(id){var el=document.getElementById(id); if(el) el.value=''});
+    var due=document.getElementById('homeworkDueDate'); if(due) due.value='';
+    var btn=document.getElementById('saveHomeworkBtn'); if(btn) btn.textContent='Добавить ДЗ';
+  }
+
+  async function saveHomework(){
+    var u=getUser(); if(!u || u.role!=='teacher') return alert('Добавлять ДЗ может только учитель');
+    var body={
+      user:u,
+      id:editingHomeworkId,
+      subjectName:(document.getElementById('homeworkSubject')||{}).value||'',
+      groupName:(document.getElementById('homeworkGroup')||{}).value||'',
+      dueDate:(document.getElementById('homeworkDueDate')||{}).value||'',
+      title:(document.getElementById('homeworkTitle')||{}).value||'',
+      description:(document.getElementById('homeworkDescription')||{}).value||'',
+      links:(document.getElementById('homeworkLinks')||{}).value||''
+    };
+    if(!body.subjectName || !body.groupName || !body.title.trim()) return alert('Заполните предмет, группу и название задания');
+    try{
+      var res=await fetch('/api/homework-save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
+      clearHomeworkForm(); await loadHomeworkList();
+      var st=document.getElementById('saveIndicator'); if(st){st.textContent=json.message||'ДЗ сохранено'; st.className='saved'}
+    }catch(e){alert('Не удалось сохранить ДЗ: '+e.message)}
+  }
+
+  async function deleteHomework(id){
+    var u=getUser(); if(!u || u.role!=='teacher') return alert('Удалять ДЗ может только учитель');
+    if(!confirm('Удалить домашнее задание?')) return;
+    try{
+      var res=await fetch('/api/homework-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u,id:id})});
+      var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
+      await loadHomeworkList();
+    }catch(e){alert('Не удалось удалить ДЗ: '+e.message)}
+  }
+
+  function editHomework(item){
+    editingHomeworkId=item._id||'';
+    fillHomeworkSelects();
+    var s=document.getElementById('homeworkSubject'),g=document.getElementById('homeworkGroup');
+    if(s){s.value=item.subjectName||''; fillHomeworkSelects();}
+    if(g) g.value=item.groupName||'';
+    var d=document.getElementById('homeworkDueDate'); if(d) d.value=item.dueDate||'';
+    var t=document.getElementById('homeworkTitle'); if(t) t.value=item.title||'';
+    var desc=document.getElementById('homeworkDescription'); if(desc) desc.value=item.description||'';
+    var links=document.getElementById('homeworkLinks'); if(links) links.value=item.links||'';
+    var btn=document.getElementById('saveHomeworkBtn'); if(btn) btn.textContent='Сохранить изменения';
+    document.getElementById('homeworkPanel').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function renderHomework(items){
+    var box=document.getElementById('homeworkList'); if(!box) return;
+    var mode=(document.getElementById('homeworkFilterMode')||{}).value||'actual';
+    var subj=(document.getElementById('homeworkFilterSubject')||{}).value||'';
+    var filtered=(items||[]).filter(function(item){
+      if(subj && item.subjectName!==subj) return false;
+      var left=daysLeft(item.dueDate);
+      if(mode==='actual') return left===null || left>=0;
+      if(mode==='overdue') return left!==null && left<0;
+      return true;
+    });
+    if(!filtered.length){box.innerHTML='<div class="empty">Заданий пока нет.</div>';return;}
+    box.innerHTML=filtered.map(function(item){
+      var left=daysLeft(item.dueDate), cls='', label=formatDue(item.dueDate);
+      if(left!==null && left<0){cls=' overdue'; label+=' · просрочено'}
+      else if(left!==null && left<=2){cls=' due-soon'; label+=' · скоро'}
+      var links=item.links?'<div class="homework-links"><b>Материалы:</b><br>'+escLocal(item.links)+'</div>':'';
+      var actions=isTeacher()?'<div class="homework-actions"><button class="small-btn secondary" data-edit-hw="'+escLocal(item._id)+'">Изменить</button><button class="small-btn danger" data-del-hw="'+escLocal(item._id)+'">Удалить</button></div>':'<div class="homework-actions"><button class="small-btn secondary" data-copy-hw="'+escLocal(item._id)+'">Скопировать</button></div>';
+      return '<article class="homework-card" data-hw-id="'+escLocal(item._id)+'"><h3>'+escLocal(item.title)+'</h3><div class="homework-meta"><span class="homework-badge">'+escLocal(item.subjectName)+'</span><span class="homework-badge">'+escLocal(item.groupName)+'</span><span class="homework-badge'+cls+'">'+escLocal(label)+'</span></div><div class="homework-text">'+escLocal(item.description||'Без описания')+'</div>'+links+actions+'</article>';
+    }).join('');
+    box.querySelectorAll('[data-del-hw]').forEach(function(b){b.onclick=function(){deleteHomework(b.getAttribute('data-del-hw'))}});
+    box.querySelectorAll('[data-edit-hw]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-edit-hw'); var item=filtered.find(function(x){return x._id===id}); if(item) editHomework(item)}});
+    box.querySelectorAll('[data-copy-hw]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-copy-hw'); var card=box.querySelector('[data-hw-id="'+id+'"]'); if(card && navigator.clipboard) navigator.clipboard.writeText(card.innerText).then(function(){alert('ДЗ скопировано')});}});
+  }
+
+  window.loadHomeworkList = async function(){
+    var u=getUser(); if(!u) return;
+    fillHomeworkSelects();
+    try{
+      var res=await fetch('/api/homework-list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u})});
+      var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
+      renderHomework(json.items||[]);
+    }catch(e){var box=document.getElementById('homeworkList'); if(box) box.innerHTML='<div class="empty">Ошибка загрузки ДЗ: '+escLocal(e.message)+'</div>';}
+  };
+
+  function initHomework(){
+    fillHomeworkSelects();
+    var s=document.getElementById('homeworkSubject'); if(s) s.onchange=fillHomeworkSelects;
+    var b=document.getElementById('saveHomeworkBtn'); if(b) b.onclick=saveHomework;
+    var c=document.getElementById('clearHomeworkFormBtn'); if(c) c.onclick=clearHomeworkForm;
+    var r=document.getElementById('refreshHomeworkBtn'); if(r) r.onclick=loadHomeworkList;
+    var fs=document.getElementById('homeworkFilterSubject'); if(fs) fs.onchange=loadHomeworkList;
+    var fm=document.getElementById('homeworkFilterMode'); if(fm) fm.onchange=loadHomeworkList;
+    if(isTeacher()){var p=document.getElementById('homeworkPanel'); if(p) p.classList.remove('student-homework-view');}
+    loadHomeworkList();
+  }
+
+  var oldRenderSubjects=window.renderSubjects;
+  if(typeof oldRenderSubjects==='function'){
+    window.renderSubjects=renderSubjects=function(){oldRenderSubjects.apply(this,arguments); setTimeout(fillHomeworkSelects,0)};
+  }
+  var oldRenderGroups=window.renderGroups;
+  if(typeof oldRenderGroups==='function'){
+    window.renderGroups=renderGroups=function(){oldRenderGroups.apply(this,arguments); setTimeout(fillHomeworkSelects,0)};
+  }
+  window.addEventListener('load',function(){setTimeout(initHomework,900)});
+})();
+</script>
+
+</body></html>';var blob=new Blob(['\uFEFF'+html],{type:'application/vnd.ms-excel;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=safeFileName(s.name+'_'+g.name+'_журнал')+'.xls';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
 function toDateInputValue(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}function formatDate(d){var p=(d||'').split('-');return p.length===3?p[2]+'.'+p[1]+'.'+p[0]:d}function shortStatusText(s){return s==='absent'?'Н — прогул':s==='excused'?'У — уваж.':s==='sick'?'Б — больн.':'—'}function statusText(s){return s==='absent'?'Прогул':s==='excused'?'Уважительная':s==='sick'?'Больничный':'Очистить'}function escapeHtml(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}function esc(t){return escapeHtml(t)}function excelEscape(v){return escapeHtml(v==null?'':v)}function safeFileName(n){return String(n||'journal').replace(/[\\/:*?\"<>|]/g,'_').slice(0,120)}
 initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups('');renderTable();
 </script>
@@ -566,6 +765,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     analytics: ['analyticsPanel'],
     access: ['groupAccessPanel'],
     tools: ['toolsPanel'],
+    homework: ['homeworkPanel'],
     history: ['historyPanel']
   };
   var activeTab = localStorage.getItem('journalActiveTab') || 'journal';
@@ -600,12 +800,14 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
         {id:'journal', label:'Журнал', intro:'Основная работа: предметы, группы, ученики, даты и таблица.'},
         {id:'analytics', label:'Аналитика', intro:'Итоги по группе, ученику или предмету.'},
         {id:'access', label:'Доступы', intro:'Логины и пароли для групп. Один логин открывает выбранную группу во всех предметах.'},
+        {id:'homework', label:'Домашнее задание', intro:'Добавляйте задания для конкретных групп, а ученики будут видеть их по предметам.'},
         {id:'tools', label:'Инструменты', intro:'Фильтры, резервные копии, восстановление и настройки оценок.'},
         {id:'history', label:'История', intro:'Последние изменения и действия в журнале.'}
       ];
     }
     return [
       {id:'table', label:'Журнал', intro:'Выберите предмет и смотрите оценки своей группы.'},
+      {id:'homework', label:'Домашнее задание', intro:'Здесь задания вашей группы по выбранным предметам.'},
       {id:'analytics', label:'Аналитика', intro:'Итоги по вашей группе.'}
     ];
   }
@@ -634,6 +836,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     localStorage.setItem('journalActiveTab', id);
     renderTabs();
     if(id==='history' && typeof window.loadHistoryList==='function') window.loadHistoryList();
+    if(id==='homework' && typeof window.loadHomeworkList==='function') window.loadHomeworkList();
     window.scrollTo({top:0, behavior:'smooth'});
   }
 
