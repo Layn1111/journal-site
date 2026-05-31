@@ -30,10 +30,16 @@ const stateSchema = new mongoose.Schema({
 
 const AppState = mongoose.model("AppState", stateSchema);
 
-const TEACHER_USERNAME = "Учитель";
-const TEACHER_PASSWORD = "322С322";
+// Учётные данные учителя берутся только из переменных окружения.
+// Локально добавьте их в .env, на Render — в Environment Variables.
+const TEACHER_USERNAME = process.env.TEACHER_LOGIN || "Учитель";
+const TEACHER_PASSWORD = process.env.TEACHER_PASSWORD;
 
 async function ensureTeacherAccount() {
+  if (!TEACHER_PASSWORD) {
+    throw new Error("Не задана переменная TEACHER_PASSWORD. Добавьте её в .env или Render Environment Variables.");
+  }
+
   const passwordHash = await bcrypt.hash(TEACHER_PASSWORD, 10);
 
   await User.findOneAndUpdate(
@@ -48,7 +54,7 @@ async function ensureTeacherAccount() {
     { upsert: true, new: true }
   );
 
-  // Старый демо-логин больше не нужен. Если он есть, удаляем его.
+  // Удаляем старый стандартный логин, если он остался в базе.
   await User.deleteOne({ username: "teacher", role: "teacher" });
 }
 
@@ -105,11 +111,12 @@ app.get("/api/test", (req, res) => {
   res.json({ message: "Сервер работает и MongoDB подключена" });
 });
 
+// Служебная подготовка системы. Не показывается в интерфейсе.
 app.post("/api/setup", async (req, res) => {
   try {
     await ensureTeacherAccount();
     await ensureState();
-    res.json({ message: "Учётная запись учителя готова" });
+    res.json({ message: "Система готова" });
   } catch (error) {
     res.status(500).json({ message: "Ошибка подготовки системы", error: error.message });
   }
@@ -314,6 +321,48 @@ app.post("/api/journal", async (req, res) => {
     res.json([]);
   } catch (error) {
     res.status(500).json({ message: "Ошибка получения журнала", error: error.message });
+  }
+});
+
+app.post("/api/backup", async (req, res) => {
+  try {
+    const user = req.body.user || {};
+
+    if (user.role !== "teacher") {
+      return res.status(403).json({ message: "Резервные копии может делать только учитель" });
+    }
+
+    const state = await ensureState();
+    res.json({
+      data: state.data,
+      exportedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка создания резервной копии", error: error.message });
+  }
+});
+
+app.post("/api/backup-restore", async (req, res) => {
+  try {
+    const { user, data } = req.body || {};
+
+    if (!user || user.role !== "teacher") {
+      return res.status(403).json({ message: "Восстанавливать копии может только учитель" });
+    }
+
+    if (!data || !Array.isArray(data.subjects)) {
+      return res.status(400).json({ message: "Файл резервной копии повреждён или имеет неверный формат" });
+    }
+
+    await AppState.findOneAndUpdate(
+      { key: "main" },
+      { key: "main", data, updatedAt: new Date() },
+      { upsert: true, new: true }
+    );
+
+    res.json({ message: "Резервная копия восстановлена" });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка восстановления резервной копии", error: error.message });
   }
 });
 

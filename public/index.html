@@ -10,6 +10,16 @@
 /* --- Рабочий слой входа MongoDB --- */
 #authScreen{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg);color:var(--text)}
 #authScreen.auth-hidden{display:none}.auth-card{width:min(460px,100%);background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;box-shadow:0 20px 70px var(--shadow);backdrop-filter:blur(16px)}.auth-card h2{margin:0 0 6px;font-size:28px}.auth-card p{color:var(--muted)}.auth-card input{width:100%;margin:6px 0 12px}.auth-actions{display:flex;gap:10px;flex-wrap:wrap}.auth-actions button{flex:1;min-width:160px}.auth-msg{min-height:22px;font-weight:700}.auth-msg.error{color:#dc3545}.auth-msg.success{color:#198754}#sessionBar{display:none;position:fixed;left:16px;top:14px;z-index:1001;background:var(--card);border:1px solid var(--border);box-shadow:0 4px 16px var(--shadow);border-radius:12px;padding:8px 10px;backdrop-filter:blur(14px);gap:8px;align-items:center}#sessionBar.show{display:flex}.student-readonly #groupPanel,.student-readonly #studentsPanel,.student-readonly #toolsPanel,.student-readonly #groupAccessPanel{display:none!important}.student-readonly #subjectName,.student-readonly label[for="subjectName"],.student-readonly #addSubjectBtn,.student-readonly #deleteSubjectBtn{display:none!important}.student-readonly #subjectPanel .hint{display:none!important}.student-readonly .delete-date,.student-readonly [data-action="fill-date"],.student-readonly [data-action="set-status"],.student-readonly [data-action="rename-student"],.student-readonly [data-action="delete-student"]{display:none!important}.student-readonly .topic-input,.student-readonly .grade-select{pointer-events:none;opacity:.75}.student-readonly #notesBtn{display:none!important}body.app-locked>header,body.app-locked>main,body.app-locked>#topTools{display:none!important}
+
+/* --- Вкладки и индикатор сохранения --- */
+#appTabs{display:none;position:sticky;top:0;z-index:900;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;background:var(--card);border-bottom:1px solid var(--border);box-shadow:0 4px 16px var(--shadow);padding:10px 16px;backdrop-filter:blur(14px)}
+#appTabs.show{display:flex}
+#appTabs button{background:var(--primary-soft);color:var(--primary);border:1px solid var(--border);border-radius:999px;padding:8px 12px}
+#appTabs button.active{background:var(--primary);color:var(--btn)}
+#saveStatus{display:none;position:fixed;right:16px;bottom:16px;z-index:3000;background:var(--card);border:1px solid var(--border);box-shadow:0 8px 24px var(--shadow);border-radius:999px;padding:9px 14px;font-weight:800;color:var(--primary);backdrop-filter:blur(14px)}
+#saveStatus.show{display:block}
+#saveStatus.error{color:#dc3545}
+.student-readonly #appTabs button[data-panel="groupPanel"],.student-readonly #appTabs button[data-panel="studentsPanel"],.student-readonly #appTabs button[data-panel="toolsPanel"],.student-readonly #appTabs button[data-panel="groupAccessPanel"]{display:none!important}
 </style>
 </head>
 <body class="theme-light app-locked">
@@ -28,6 +38,8 @@
   </div>
 </div>
 <div id="sessionBar"><span id="sessionInfo"></span><button id="logoutBtn" class="secondary" type="button">Выйти</button></div>
+<div id="appTabs"></div>
+<div id="saveStatus">Сохранено</div>
 
 <div id="topTools"><select id="themeSelect"><option value="theme-light">Светлая</option><option value="theme-dark">Тёмная</option><option value="theme-midnight">Тёмный градиент</option><option value="theme-blue">Синий градиент</option><option value="theme-violet">Фиолетовый градиент</option><option value="theme-night">Ночная</option><option value="theme-emerald">Изумрудная</option><option value="theme-custom">Свой градиент</option></select><div class="custom-colors"><input id="customColor1" type="color" value="#020617"><input id="customColor2" type="color" value="#111827"><input id="customColor3" type="color" value="#312e81"><button id="applyCustomThemeBtn" type="button">OK</button></div><button id="infoBtn" type="button">Информация</button></div>
 <header><h1>Журнал посещаемости и оценок</h1><p>(67 команда сделала)</p></header>
@@ -344,18 +356,6 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     }
   }
 
-  async function setup(){
-    setMsg('Создаю тестовые данные...');
-    try{
-      var res = await fetch('/api/setup', { method: 'POST' });
-      var body = await res.json();
-      if(!res.ok) throw new Error(body.message || 'Ошибка');
-      setMsg(body.message || 'Готово', 'success');
-    }catch(error){
-      setMsg('Ошибка: ' + error.message, 'error');
-    }
-  }
-
   function logout(){
     currentUser = null;
     localStorage.removeItem('journalCurrentUser');
@@ -369,8 +369,6 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   }
 
   document.getElementById('authLoginBtn').onclick = login;
-  var authSetupBtn = document.getElementById('authSetupBtn');
-  if(authSetupBtn) authSetupBtn.onclick = setup;
   document.getElementById('logoutBtn').onclick = logout;
   document.getElementById('authPassword').addEventListener('keydown', function(e){ if(e.key === 'Enter') login(); });
   document.getElementById('authUsername').addEventListener('keydown', function(e){ if(e.key === 'Enter') login(); });
@@ -532,6 +530,184 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   }catch(e){
     logout();
   }
+})();
+</script>
+
+<script>
+/* --- Улучшения: вкладки, индикатор сохранения, резервные копии через сервер --- */
+(function(){
+  var tabs = [
+    { id: 'subjectPanel', teacher: 'Предметы', student: 'Предметы' },
+    { id: 'groupPanel', teacher: 'Группы' },
+    { id: 'studentsPanel', teacher: 'Студенты и занятия' },
+    { id: 'tablePanel', teacher: 'Журнал', student: 'Журнал' },
+    { id: 'analyticsPanel', teacher: 'Аналитика', student: 'Аналитика' },
+    { id: 'groupAccessPanel', teacher: 'Доступы' },
+    { id: 'toolsPanel', teacher: 'Инструменты' }
+  ];
+  var activePanel = 'tablePanel';
+  var statusTimer = null;
+
+  function getUser(){
+    try{
+      if(typeof currentUser !== 'undefined' && currentUser) return currentUser;
+    }catch(e){}
+    try{
+      var saved = localStorage.getItem('journalCurrentUser');
+      return saved ? JSON.parse(saved) : null;
+    }catch(e){ return null; }
+  }
+
+  function showSaveStatus(text, isError){
+    var el = document.getElementById('saveStatus');
+    if(!el) return;
+    el.textContent = text;
+    el.className = 'show' + (isError ? ' error' : '');
+    clearTimeout(statusTimer);
+    if(text !== 'Сохраняю...'){
+      statusTimer = setTimeout(function(){ el.className = ''; }, 1800);
+    }
+  }
+
+  function visibleTabs(){
+    var user = getUser();
+    var role = user && user.role === 'student' ? 'student' : 'teacher';
+    return tabs.filter(function(tab){ return !!tab[role]; }).map(function(tab){
+      return { id: tab.id, title: tab[role] };
+    });
+  }
+
+  function setActiveTab(panelId){
+    var available = visibleTabs();
+    if(!available.some(function(t){ return t.id === panelId; })){
+      panelId = available[0] ? available[0].id : 'tablePanel';
+    }
+    activePanel = panelId;
+    tabs.forEach(function(tab){
+      var panel = document.getElementById(tab.id);
+      if(panel) panel.style.display = (tab.id === panelId ? '' : 'none');
+    });
+    renderTabs();
+    if(panelId === 'analyticsPanel' && typeof renderAnalytics === 'function') renderAnalytics();
+    if(panelId === 'groupAccessPanel' && typeof loadGroupAccessList === 'function') loadGroupAccessList();
+  }
+
+  function renderTabs(){
+    var nav = document.getElementById('appTabs');
+    if(!nav) return;
+    var user = getUser();
+    if(!user){ nav.className = ''; nav.innerHTML = ''; return; }
+    nav.className = 'show';
+    nav.innerHTML = visibleTabs().map(function(tab){
+      return '<button type="button" data-panel="' + tab.id + '" class="' + (tab.id === activePanel ? 'active' : '') + '">' + tab.title + '</button>';
+    }).join('');
+    nav.querySelectorAll('[data-panel]').forEach(function(btn){
+      btn.onclick = function(){ setActiveTab(btn.getAttribute('data-panel')); };
+    });
+  }
+
+  var oldFetch = window.fetch;
+  window.fetch = function(input, init){
+    var url = typeof input === 'string' ? input : (input && input.url) || '';
+    var isStateSave = url.indexOf('/api/state') !== -1 && init && init.method === 'POST' && init.body && String(init.body).indexOf('"data"') !== -1;
+    var isRestore = url.indexOf('/api/backup-restore') !== -1;
+    if(isStateSave || isRestore) showSaveStatus('Сохраняю...');
+    return oldFetch.apply(this, arguments).then(function(res){
+      if(isStateSave || isRestore){
+        if(res.ok) showSaveStatus('Сохранено'); else showSaveStatus('Ошибка сохранения', true);
+      }
+      return res;
+    }).catch(function(err){
+      if(isStateSave || isRestore) showSaveStatus('Ошибка сохранения', true);
+      throw err;
+    });
+  };
+
+  var oldApplyRoleView = window.applyRoleView;
+  if(typeof oldApplyRoleView === 'function'){
+    window.applyRoleView = applyRoleView = function(){
+      oldApplyRoleView.apply(this, arguments);
+      renderTabs();
+      setTimeout(function(){ setActiveTab(activePanel); }, 0);
+    };
+  }
+
+  var oldLogout = window.logout;
+  if(typeof oldLogout === 'function'){
+    window.logout = logout = function(){
+      tabs.forEach(function(tab){ var p=document.getElementById(tab.id); if(p) p.style.display=''; });
+      var nav = document.getElementById('appTabs'); if(nav) nav.className='';
+      oldLogout.apply(this, arguments);
+    };
+  }
+
+  var oldDownloadBackup = window.downloadBackup;
+  window.downloadBackup = downloadBackup = async function(){
+    var user = getUser();
+    if(!user || user.role !== 'teacher') return alert('Резервные копии доступны только учителю');
+    try{
+      var res = await fetch('/api/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: user })
+      });
+      var body = await res.json();
+      if(!res.ok) throw new Error(body.message || 'Ошибка');
+      var payload = { exportedAt: body.exportedAt || new Date().toISOString(), data: body.data || data };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'journal_backup_' + new Date().toISOString().slice(0,10) + '.json';
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    }catch(error){
+      if(typeof oldDownloadBackup === 'function') oldDownloadBackup();
+      alert('Серверная резервная копия не скачалась: ' + error.message + '. Скачана локальная копия.');
+    }
+  };
+
+  var oldRestoreBackup = window.restoreBackup;
+  window.restoreBackup = restoreBackup = function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var user = getUser();
+    if(!user || user.role !== 'teacher') return alert('Восстанавливать копии может только учитель');
+    if(!confirm('Восстановить данные из резервной копии? Текущие данные будут заменены.')) return;
+    var r = new FileReader();
+    r.onload = async function(){
+      try{
+        var obj = JSON.parse(r.result);
+        var backupData = obj.data && obj.data.subjects ? obj.data : obj;
+        if(!backupData.subjects) throw new Error('Неверный формат файла');
+        if(typeof migrateData === 'function') migrateData(backupData);
+        var res = await fetch('/api/backup-restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: user, data: backupData })
+        });
+        var body = await res.json();
+        if(!res.ok) throw new Error(body.message || 'Ошибка восстановления');
+        data = backupData;
+        window.data = data;
+        if(typeof renderSubjects === 'function') renderSubjects('');
+        if(typeof renderGroups === 'function') renderGroups('');
+        if(typeof renderTable === 'function') renderTable();
+        alert(body.message || 'Резервная копия восстановлена');
+      }catch(err){
+        alert('Не удалось загрузить файл: ' + err.message);
+      }
+    };
+    r.readAsText(file);
+  };
+
+  window.setActiveTab = setActiveTab;
+
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      renderTabs();
+      if(getUser()) setActiveTab(activePanel);
+    }, 500);
+  });
 })();
 </script>
 
