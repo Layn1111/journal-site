@@ -60,6 +60,16 @@ body.theme-midnight,body.theme-blue,body.theme-violet,body.theme-night,body.them
 /* --- Финальные улучшения: роли, компактный режим, рейтинг, настройки, инструкция --- */
 .role-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 14px}.role-chip{display:flex!important;align-items:center;justify-content:center;gap:8px;border:1px solid var(--border);border-radius:12px;padding:10px;background:rgba(255,255,255,.55);cursor:pointer;font-weight:800}.role-chip.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}.role-chip input{width:auto;margin:0}.tab-hidden{display:none!important}.app-tabs{max-width:1700px;margin:18px auto 8px;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap}.tab-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:10px 14px;box-shadow:0 3px 12px var(--shadow)}.tab-btn.active{background:var(--primary);color:var(--btn);border-color:var(--primary)}.section-intro{max-width:1700px;margin:0 auto 12px;padding:0 16px;color:var(--muted);font-weight:600}#saveIndicator{position:fixed;right:16px;bottom:16px;z-index:3000;background:var(--card);border:1px solid var(--border);box-shadow:0 10px 30px var(--shadow);border-radius:999px;padding:9px 14px;font-weight:800;color:var(--muted)}#saveIndicator.saving{color:#a16207}#saveIndicator.saved{color:#166534}#saveIndicator.error{color:#b91c1c}.table-mode-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.compact-table .quick-buttons,.compact-table .date-head .small-btn,.compact-table .delete-date,.compact-table .topic-input,.compact-table .table-wrap table th:last-child,.compact-table .table-wrap table td:last-child{display:none!important}.compact-table .cell-box{min-width:92px;gap:3px}.compact-table th,.compact-table td{min-width:96px;padding:5px}.compact-table .grade-select{width:62px;min-width:62px}.settings-card,.help-card{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:14px;padding:14px}.help-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.help-card h3{margin:0 0 6px}.help-card p{margin:0;color:var(--muted)}.rating-table{width:100%;min-width:700px}.rating-table th,.rating-table td{min-width:auto}.rating-table tr.rating-top-row td{background:linear-gradient(90deg,rgba(250,204,21,.14),transparent)!important}.rating-badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:28px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-weight:900}.rating-badge.top1{background:linear-gradient(135deg,#fde68a,#f59e0b);color:#78350f;box-shadow:0 4px 12px rgba(245,158,11,.25)}.rating-badge.top2{background:linear-gradient(135deg,#e5e7eb,#94a3b8);color:#1f2937}.rating-badge.top3{background:linear-gradient(135deg,#fed7aa,#fb923c);color:#7c2d12}.rating-good{color:#166534!important}.rating-warn{background:#fee2e2!important;color:#991b1b!important}@media(max-width:800px){.app-tabs{position:sticky;top:0;z-index:900;background:var(--bg);padding-top:8px}.tab-btn{flex:1;min-width:120px}.role-picker{grid-template-columns:1fr}}
 
+
+/* --- Footer credits --- */
+.site-footer{max-width:1700px;margin:28px auto 16px;padding:14px 18px;color:var(--muted);font-size:13px;text-align:center;border-top:1px solid var(--border);opacity:.9}
+.site-footer span{display:inline-block;margin:2px 8px;white-space:nowrap}
+/* --- Performance helper for very large journals --- */
+.month-filter-summary{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 10px;color:var(--muted)}
+.table-month-pill{display:inline-block;padding:5px 10px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-weight:800;border:1px solid var(--border)}
+.month-empty{padding:14px;border:1px dashed var(--border);border-radius:12px;color:var(--muted);background:rgba(255,255,255,.06);margin:10px 0}
+.table-performance-note{margin:8px 0 0;color:var(--muted);font-size:13px}
+
 </style>
 <!-- theme fix: preserve body classes when switching themes -->
 </head>
@@ -135,7 +145,7 @@ var themeSelect=document.getElementById('themeSelect'),subjectSelect=document.ge
 [newDate,dateFrom,dateTo,searchDate].forEach(function(el){el.valueAsDate=new Date()});
 periodFrom.value='';periodTo.value='';
 document.getElementById('addSubjectBtn').onclick=addSubject;document.getElementById('deleteSubjectBtn').onclick=deleteCurrentSubject;document.getElementById('addGroupBtn').onclick=addGroup;document.getElementById('deleteGroupBtn').onclick=deleteCurrentGroup;document.getElementById('addStudentBtn').onclick=addStudent;document.getElementById('addDateBtn').onclick=addDate;document.getElementById('addTodayBtn').onclick=addToday;document.getElementById('addPeriodBtn').onclick=addPeriod;document.getElementById('exportBtn').onclick=exportExcel;document.getElementById('findDateBtn').onclick=findDateColumn;document.getElementById('findTopicBtn').onclick=findTopicColumn;document.getElementById('clearSearchBtn').onclick=clearSearch;document.getElementById('refreshAnalyticsBtn').onclick=renderAnalytics;document.getElementById('summaryBtn').onclick=renderSummary;function toggleProblemHighlight(){showProblemHighlight=!showProblemHighlight;var txt=showProblemHighlight?'Убрать выделение':'Выделить проблемных';var b1=document.getElementById('toggleWarningsBtn');if(b1)b1.textContent=txt;var b2=document.getElementById('toggleWarningsBtnTable');if(b2)b2.textContent=txt;renderTable()}document.getElementById('toggleWarningsBtn').onclick=toggleProblemHighlight;document.getElementById('backupBtn').onclick=downloadBackup;document.getElementById('notesBtn').onclick=openNotes;document.getElementById('saveNotesBtn').onclick=saveNotes;document.getElementById('closeNotesBtn').onclick=function(){document.getElementById('notesModal').classList.remove('show')};var infoBtn=document.getElementById('infoBtn');if(infoBtn){infoBtn.onclick=function(){document.getElementById('infoModal').classList.add('show')}};var closeInfoBtn=document.getElementById('closeInfoBtn');if(closeInfoBtn){closeInfoBtn.onclick=function(){document.getElementById('infoModal').classList.remove('show')}};document.getElementById('applyCustomThemeBtn').onclick=function(){saveCustomColors();applyTheme('theme-custom')};['customColor1','customColor2','customColor3'].forEach(function(id){document.getElementById(id).oninput=function(){if(themeSelect.value==='theme-custom'){saveCustomColors();applyCustomColors()}}});
-themeSelect.onchange=function(){applyTheme(themeSelect.value)};subjectSelect.onchange=function(){renderGroups('');renderTable()};groupSelect.onchange=renderTable;analyticsMode.onchange=renderAnalytics;analyticsStudent.onchange=renderAnalytics;analyticsView.onchange=renderAnalytics;filterSelect.onchange=renderTable;if(monthFilter)monthFilter.onchange=renderTable;scaleSelect.onchange=function(){saveData();renderTable()};document.getElementById('restoreInput').onchange=restoreBackup;
+themeSelect.onchange=function(){applyTheme(themeSelect.value)};subjectSelect.onchange=function(){renderGroups('');renderTable()};groupSelect.onchange=renderTable;analyticsMode.onchange=renderAnalytics;analyticsStudent.onchange=renderAnalytics;analyticsView.onchange=renderAnalytics;filterSelect.onchange=renderTable;if(monthFilter)monthFilter.onchange=function(){try{localStorage.setItem('journalSelectedMonth',monthFilter.value||'all')}catch(e){} renderTable()};scaleSelect.onchange=function(){saveData();renderTable()};document.getElementById('restoreInput').onchange=restoreBackup;
 document.querySelectorAll('[data-collapse]').forEach(function(t){t.onclick=function(){document.getElementById(t.getAttribute('data-collapse')).classList.toggle('collapsed')}});
 tableArea.onclick=function(e){var t=e.target,a=t&&t.getAttribute&&t.getAttribute('data-action');if(!a)return;if(a==='set-status')setStatus(t.getAttribute('data-student'),t.getAttribute('data-date'),t.getAttribute('data-status'));if(a==='delete-date')deleteDate(t.getAttribute('data-date'));if(a==='rename-student')renameStudent(t.getAttribute('data-student'));if(a==='delete-student')deleteStudent(t.getAttribute('data-student'));if(a==='fill-date')fillDate(t.getAttribute('data-date'),t.getAttribute('data-status'))};
 tableArea.onchange=function(e){var t=e.target;if(t&&t.getAttribute('data-action')==='grade')setGrade(t.getAttribute('data-student'),t.getAttribute('data-date'),t.value)};
@@ -182,11 +192,19 @@ function monthLabel(key){var p=String(key||'').split('-');if(p.length!==2)return
 function refreshMonthFilter(g){
   if(!monthFilter||!g||!g.dates)return;
   var current=monthFilter.value||'all';
+  try{current=localStorage.getItem('journalSelectedMonth')||current}catch(e){}
   var keys=[];
   g.dates.forEach(function(d){var k=monthKey(d);if(k&&keys.indexOf(k)===-1)keys.push(k)});
   keys.sort();
   monthFilter.innerHTML='<option value="all">Все месяцы</option>'+keys.map(function(k){return '<option value="'+esc(k)+'">'+escapeHtml(monthLabel(k))+'</option>'}).join('');
-  if(current!=='all'&&keys.indexOf(current)!==-1)monthFilter.value=current;else monthFilter.value='all';
+  if(current!=='all'&&keys.indexOf(current)!==-1){
+    monthFilter.value=current;
+  }else if((g.dates||[]).length>45 && keys.length){
+    monthFilter.value=keys[keys.length-1];
+    try{localStorage.setItem('journalSelectedMonth',monthFilter.value)}catch(e){}
+  }else{
+    monthFilter.value='all';
+  }
 }
 function getVisibleDates(g){
   if(!g||!g.dates)return[];
@@ -194,7 +212,7 @@ function getVisibleDates(g){
   if(!m||m==='all')return g.dates.slice();
   return g.dates.filter(function(d){return monthKey(d)===m});
 }
-function renderTable(){renderSubjects(subjectSelect.value);renderGroups(groupSelect.value);var s=getCurrentSubject(),g=getCurrentGroup();if(!s){tableArea.innerHTML='<div class="empty">Добавьте первый предмет.</div>';renderAnalytics();return}if(!g){tableArea.innerHTML='<div class="empty">Для предмета «'+escapeHtml(s.name)+'» добавьте группу.</div>';renderAnalytics();return}ensureGroupFields(g);refreshMonthFilter(g);if(!g.students.length&&!g.dates.length){tableArea.innerHTML='<div class="empty">Добавьте студентов и даты.</div>';renderAnalytics();return}var visibleDates=getVisibleDates(g);var students=g.students.filter(function(st){return studentMatchesFilter(g,st)});var monthTitle=(monthFilter&&monthFilter.value&&monthFilter.value!=='all')?monthLabel(monthFilter.value):'Все месяцы';var html='<div class="month-filter-summary"><span class="table-month-pill">'+escapeHtml(monthTitle)+'</span> <span>Показано дат: '+visibleDates.length+' из '+g.dates.length+'</span></div>';if(!visibleDates.length){html+='<div class="month-empty">В выбранном месяце нет занятий. Выберите другой месяц или добавьте дату.</div>';tableArea.innerHTML=html;renderAnalytics();return}html+='<div class="table-wrap"><table><thead><tr><th class="num">№</th><th class="name">ФИО студента</th>';visibleDates.forEach(function(date){var fc=highlightedDate===date?' date-found':'';html+='<th class="date-column'+fc+'" data-date-column="'+esc(date)+'"><div class="date-head"><div class="date-top"><span class="date-text">'+formatDate(date)+'</span><button class="delete-date" data-action="delete-date" data-date="'+esc(date)+'">×</button></div><input class="topic-input" data-action="topic" data-date="'+esc(date)+'" value="'+esc(g.topics[date]||'')+'" placeholder="Тема"><div><button class="small-btn btn-absent" data-action="fill-date" data-date="'+esc(date)+'" data-status="absent">всем Н</button><button class="small-btn btn-clear" data-action="fill-date" data-date="'+esc(date)+'" data-status="">очист.</button></div></div></th>'});html+='<th>Действия</th></tr></thead><tbody>';if(!students.length)html+='<tr><td colspan="'+(visibleDates.length+3)+'">Нет учеников по фильтру</td></tr>';students.forEach(function(st,idx){var warn=showProblemHighlight&&isProblemStudent(g,st.id);html+='<tr class="'+(warn?'problem-row':'')+'"><td class="num '+(warn?'warn':'')+'">'+(idx+1)+'</td><td class="name '+(warn?'warn':'')+'">'+escapeHtml(st.name)+'</td>';visibleDates.forEach(function(date){var status=g.attendance[date]&&g.attendance[date][st.id]?g.attendance[date][st.id]:'',grade=g.grades[date]&&g.grades[date][st.id]?g.grades[date][st.id]:'';html+='<td><div class="cell-box"><span class="status-value '+(status||'status-empty')+'">'+shortStatusText(status)+'</span><div class="grade-row"><span class="grade-icon">★</span><select class="grade-select '+gradeClass(grade)+'" data-action="grade" data-student="'+esc(st.id)+'" data-date="'+esc(date)+'" '+(status?'disabled':'')+'>'+gradeOptions(grade)+'</select></div><div class="quick-buttons">'+statusButton(st.id,date,status,'absent','Н','btn-absent')+statusButton(st.id,date,status,'excused','У','btn-excused')+statusButton(st.id,date,status,'sick','Б','btn-sick')+statusButton(st.id,date,status,'','×','btn-clear')+'</div></div></td>'});html+='<td><button class="small-btn secondary" data-action="rename-student" data-student="'+esc(st.id)+'">Изм.</button><button class="small-btn danger" data-action="delete-student" data-student="'+esc(st.id)+'">Удал.</button></td></tr>'});html+='</tbody></table></div>';tableArea.innerHTML=html;renderAnalytics();renderNotesStudents()}
+function renderTable(){renderSubjects(subjectSelect.value);renderGroups(groupSelect.value);var s=getCurrentSubject(),g=getCurrentGroup();if(!s){tableArea.innerHTML='<div class="empty">Добавьте первый предмет.</div>';renderAnalytics();return}if(!g){tableArea.innerHTML='<div class="empty">Для предмета «'+escapeHtml(s.name)+'» добавьте группу.</div>';renderAnalytics();return}ensureGroupFields(g);refreshMonthFilter(g);if(!g.students.length&&!g.dates.length){tableArea.innerHTML='<div class="empty">Добавьте студентов и даты.</div>';renderAnalytics();return}var visibleDates=getVisibleDates(g);var students=g.students.filter(function(st){return studentMatchesFilter(g,st)});var monthTitle=(monthFilter&&monthFilter.value&&monthFilter.value!=='all')?monthLabel(monthFilter.value):'Все месяцы';var html='<div class="month-filter-summary"><span class="table-month-pill">'+escapeHtml(monthTitle)+'</span> <span>Показано дат: '+visibleDates.length+' из '+g.dates.length+'</span></div>';if((g.dates||[]).length>45&&(monthFilter&&monthFilter.value==='all'))html+='<div class="table-performance-note">Совет: выберите конкретный месяц, чтобы большая таблица работала быстрее.</div>';if(!visibleDates.length){html+='<div class="month-empty">В выбранном месяце нет занятий. Выберите другой месяц или добавьте дату.</div>';tableArea.innerHTML=html;renderAnalytics();return}html+='<div class="table-wrap"><table><thead><tr><th class="num">№</th><th class="name">ФИО студента</th>';visibleDates.forEach(function(date){var fc=highlightedDate===date?' date-found':'';html+='<th class="date-column'+fc+'" data-date-column="'+esc(date)+'"><div class="date-head"><div class="date-top"><span class="date-text">'+formatDate(date)+'</span><button class="delete-date" data-action="delete-date" data-date="'+esc(date)+'">×</button></div><input class="topic-input" data-action="topic" data-date="'+esc(date)+'" value="'+esc(g.topics[date]||'')+'" placeholder="Тема"><div><button class="small-btn btn-absent" data-action="fill-date" data-date="'+esc(date)+'" data-status="absent">всем Н</button><button class="small-btn btn-clear" data-action="fill-date" data-date="'+esc(date)+'" data-status="">очист.</button></div></div></th>'});html+='<th>Действия</th></tr></thead><tbody>';if(!students.length)html+='<tr><td colspan="'+(visibleDates.length+3)+'">Нет учеников по фильтру</td></tr>';students.forEach(function(st,idx){var warn=showProblemHighlight&&isProblemStudent(g,st.id);html+='<tr class="'+(warn?'problem-row':'')+'"><td class="num '+(warn?'warn':'')+'">'+(idx+1)+'</td><td class="name '+(warn?'warn':'')+'">'+escapeHtml(st.name)+'</td>';visibleDates.forEach(function(date){var status=g.attendance[date]&&g.attendance[date][st.id]?g.attendance[date][st.id]:'',grade=g.grades[date]&&g.grades[date][st.id]?g.grades[date][st.id]:'';html+='<td><div class="cell-box"><span class="status-value '+(status||'status-empty')+'">'+shortStatusText(status)+'</span><div class="grade-row"><span class="grade-icon">★</span><select class="grade-select '+gradeClass(grade)+'" data-action="grade" data-student="'+esc(st.id)+'" data-date="'+esc(date)+'" '+(status?'disabled':'')+'>'+gradeOptions(grade)+'</select></div><div class="quick-buttons">'+statusButton(st.id,date,status,'absent','Н','btn-absent')+statusButton(st.id,date,status,'excused','У','btn-excused')+statusButton(st.id,date,status,'sick','Б','btn-sick')+statusButton(st.id,date,status,'','×','btn-clear')+'</div></div></td>'});html+='<td><button class="small-btn secondary" data-action="rename-student" data-student="'+esc(st.id)+'">Изм.</button><button class="small-btn danger" data-action="delete-student" data-student="'+esc(st.id)+'">Удал.</button></td></tr>'});html+='</tbody></table></div>';tableArea.innerHTML=html;renderAnalytics();renderNotesStudents()}
 function gradeOptions(cur){var scale=scaleSelect.value||data.scale||'2-5',arr=scale==='1-10'?['','10','9','8','7','6','5','4','3','2','1']:scale==='pass'?['','зач','незач']:['','5','4','3','2','зач'];return arr.map(function(v){return'<option value="'+esc(v)+'" '+(cur===v?'selected':'')+'>'+(v||'—')+'</option>'}).join('')}
 function gradeClass(g){if(g==='2'||g==='1'||g==='незач')return'grade-2';if(g==='3')return'grade-3';if(g==='4')return'grade-4';if(g==='5'||g==='зач')return'grade-5';return''}
 function statusButton(sid,date,cur,val,text,cls){return'<button title="'+statusText(val)+'" class="'+cls+(cur===val?' active':'')+'" data-action="set-status" data-student="'+esc(sid)+'" data-date="'+esc(date)+'" data-status="'+esc(val)+'">'+text+'</button>'}
@@ -219,32 +237,43 @@ function openNotes(){if(document.body.classList.contains('student-readonly'))ret
 function renderNotesStudents(){var sel=document.getElementById('notesStudent');if(!sel)return;var g=getCurrentGroup(),cur=sel.value;sel.innerHTML='';if(!g)return;g.students.forEach(function(st){var o=document.createElement('option');o.value=st.id;o.textContent=st.name;sel.appendChild(o)});if(cur)sel.value=cur;sel.onchange=loadNoteText}
 function loadNoteText(){var g=getCurrentGroup(),sid=document.getElementById('notesStudent').value;if(g&&sid)document.getElementById('notesText').value=(g.notes&&g.notes[sid])||''}
 function saveNotes(){if(document.body.classList.contains('student-readonly'))return alert('Сохранять заметки может только учитель');var g=getCurrentGroup(),sid=document.getElementById('notesStudent').value;if(!g||!sid)return;ensureGroupFields(g);g.notes[sid]=document.getElementById('notesText').value;saveData();alert('Заметка сохранена')}
+
+function downloadBlob(content, filename, mime){var blob=new Blob([content],{type:mime||'application/octet-stream'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename||'download';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
 function downloadBackup(){var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='journal_backup.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
 function restoreBackup(e){var file=e.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var obj=JSON.parse(r.result);if(!obj.subjects)throw new Error();migrateData(obj);data=obj;saveData();renderSubjects('');renderGroups('');renderTable();alert('Резервная копия загружена')}catch(err){alert('Не удалось загрузить файл')}};r.readAsText(file)}
 function exportExcel(){
   var s=getCurrentSubject(),g=getCurrentGroup();
   if(!s||!g)return alert('Выберите предмет и группу');
   ensureGroupFields(g);
-  var dates=getVisibleDates(g);
+  var dates=(typeof getVisibleDates==='function')?getVisibleDates(g):(g.dates||[]);
   if(!dates.length)dates=g.dates||[];
-  var rows=[];
-  rows.push(['Предмет',s.name]);
-  rows.push(['Группа',g.name]);
-  rows.push([]);
-  rows.push(['№','ФИО'].concat(dates.map(formatDate)));
+  var html='<html><head><meta charset="UTF-8"></head><body>';
+  html+='<table border="1">';
+  html+='<tr><td><b>Предмет</b></td><td>'+excelEscape(s.name)+'</td></tr>';
+  html+='<tr><td><b>Группа</b></td><td>'+excelEscape(g.name)+'</td></tr>';
+  html+='<tr></tr>';
+  html+='<tr><th>№</th><th>ФИО</th>';
+  dates.forEach(function(date){html+='<th>'+excelEscape(formatDate(date))+'</th>'});
+  html+='</tr>';
   (g.students||[]).forEach(function(st,idx){
-    var row=[idx+1,st.name];
+    html+='<tr><td>'+(idx+1)+'</td><td>'+excelEscape(st.name)+'</td>';
     dates.forEach(function(date){
       var status=g.attendance&&g.attendance[date]?g.attendance[date][st.id]||'':'';
       var grade=g.grades&&g.grades[date]?g.grades[date][st.id]||'':'';
-      row.push(status?shortStatusText(status):(grade||''));
+      html+='<td>'+excelEscape(status?shortStatusText(status):(grade||''))+'</td>';
     });
-    rows.push(row);
+    html+='</tr>';
   });
-  var csv=rows.map(function(row){
-    return row.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}).join(';');
-  }).join('\n');
-  downloadBlob(csv,'journal_'+safeFileName(s.name)+'_'+safeFileName(g.name)+'.csv','text/csv;charset=utf-8');
+  html+='</table></body></html>';
+  var blob=new Blob(['\ufeff'+html],{type:'application/vnd.ms-excel;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  var monthPart=(monthFilter&&monthFilter.value&&monthFilter.value!=='all')?'_'+safeFileName(monthLabel(monthFilter.value)):'';
+  a.download='journal_'+safeFileName(s.name)+'_'+safeFileName(g.name)+monthPart+'.xls';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
 }
 function toDateInputValue(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}function formatDate(d){var p=(d||'').split('-');return p.length===3?p[2]+'.'+p[1]+'.'+p[0]:d}function shortStatusText(s){return s==='absent'?'Н — прогул':s==='excused'?'У — уваж.':s==='sick'?'Б — больн.':'—'}function statusText(s){return s==='absent'?'Прогул':s==='excused'?'Уважительная':s==='sick'?'Больничный':'Очистить'}function escapeHtml(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}function esc(t){return escapeHtml(t)}function excelEscape(v){return escapeHtml(v==null?'':v)}function safeFileName(n){return String(n||'journal').replace(/[\\/:*?\"<>|]/g,'_').slice(0,120)}
 initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups('');renderTable();
@@ -1277,6 +1306,12 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   });
 })();
 </script>
+
+
+<footer class="site-footer">
+  <span>Сделал Федоров Денис</span>
+  <span>Тестировщик и дизайнер Малов Игорь</span>
+</footer>
 
 </body>
 </html>
