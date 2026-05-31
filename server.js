@@ -488,30 +488,36 @@ app.post("/api/homework-save", async (req, res) => {
       return res.status(403).json({ message: "Добавлять домашнее задание может только учитель" });
     }
 
-    const subjectName = String(req.body.subjectName || "").trim();
-    const groupName = String(req.body.groupName || "").trim();
-    const title = String(req.body.title || "").trim();
-    const description = String(req.body.description || "").trim();
-    const dueDate = String(req.body.dueDate || "").trim();
-    const links = String(req.body.links || "").trim();
+    const subjectName = String(req.body.subjectName || "").trim().slice(0, 120);
+    const groupName = String(req.body.groupName || "").trim().slice(0, 120);
+    const title = String(req.body.title || "").trim().slice(0, 160);
+    const description = String(req.body.description || "").trim().slice(0, 5000);
+    const dueDate = String(req.body.dueDate || "").trim().slice(0, 20);
+    const links = String(req.body.links || "").trim().slice(0, 3000);
 
     if (!subjectName || !groupName || !title) {
       return res.status(400).json({ message: "Заполните предмет, группу и название задания" });
     }
 
+    if (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+      return res.status(400).json({ message: "Некорректная дата сдачи" });
+    }
+
+    const payload = { subjectName, groupName, title, description, dueDate, links, updatedAt: new Date() };
+
     let item;
-    if (req.body.id) {
-      item = await Homework.findByIdAndUpdate(
-        req.body.id,
-        { subjectName, groupName, title, description, dueDate, links, updatedAt: new Date() },
-        { new: true }
-      );
+    const id = String(req.body.id || "").trim();
+    if (id) {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Некорректный ID задания" });
+      }
+      item = await Homework.findByIdAndUpdate(id, payload, { new: true, runValidators: true });
       if (!item) return res.status(404).json({ message: "Задание не найдено" });
       await addActivity(user, "Обновлено ДЗ", subjectName + " / " + groupName + ": " + title);
       return res.json({ message: "Домашнее задание обновлено", item });
     }
 
-    item = await Homework.create({ subjectName, groupName, title, description, dueDate, links });
+    item = await Homework.create(payload);
     await addActivity(user, "Добавлено ДЗ", subjectName + " / " + groupName + ": " + title);
     res.json({ message: "Домашнее задание добавлено", item });
   } catch (error) {
@@ -528,6 +534,9 @@ app.post("/api/homework-delete", async (req, res) => {
 
     const id = String(req.body.id || "").trim();
     if (!id) return res.status(400).json({ message: "Не указан ID задания" });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Некорректный ID задания" });
+    }
 
     const item = await Homework.findByIdAndDelete(id);
     if (!item) return res.status(404).json({ message: "Задание не найдено" });
@@ -536,16 +545,6 @@ app.post("/api/homework-delete", async (req, res) => {
     res.json({ message: "Домашнее задание удалено" });
   } catch (error) {
     res.status(500).json({ message: "Ошибка удаления домашнего задания", error: error.message });
-  }
-});
-
-// Совместимость со старой версией index.html, если она где-то осталась.
-app.post("/api/journal", async (req, res) => {
-  try {
-    const state = await ensureState();
-    res.json([]);
-  } catch (error) {
-    res.status(500).json({ message: "Ошибка получения журнала", error: error.message });
   }
 });
 
