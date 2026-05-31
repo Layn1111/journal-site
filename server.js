@@ -325,7 +325,6 @@ app.post("/api/state", async (req, res) => {
         { upsert: true, new: true }
       );
 
-      await addActivity(user, "Сохранение журнала", "Данные журнала сохранены");
       return res.json({ message: "Данные сохранены" });
     }
 
@@ -402,7 +401,7 @@ app.post("/api/activity-list", async (req, res) => {
       return res.status(403).json({ message: "Историю может смотреть только учитель" });
     }
 
-    const items = await Activity.find().sort({ createdAt: -1 }).limit(120).lean();
+    const items = await Activity.find({ action: { $ne: "Сохранение журнала" } }).sort({ createdAt: -1 }).limit(120).lean();
     res.json({ items });
   } catch (error) {
     res.status(500).json({ message: "Ошибка загрузки истории", error: error.message });
