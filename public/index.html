@@ -170,174 +170,7 @@ function loadNoteText(){var g=getCurrentGroup(),sid=document.getElementById('not
 function saveNotes(){if(document.body.classList.contains('student-readonly'))return alert('Сохранять заметки может только учитель');var g=getCurrentGroup(),sid=document.getElementById('notesStudent').value;if(!g||!sid)return;ensureGroupFields(g);g.notes[sid]=document.getElementById('notesText').value;saveData();alert('Заметка сохранена')}
 function downloadBackup(){var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='journal_backup.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
 function restoreBackup(e){var file=e.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(){try{var obj=JSON.parse(r.result);if(!obj.subjects)throw new Error();migrateData(obj);data=obj;saveData();renderSubjects('');renderGroups('');renderTable();alert('Резервная копия загружена')}catch(err){alert('Не удалось загрузить файл')}};r.readAsText(file)}
-function exportExcel(){var s=getCurrentSubject(),g=getCurrentGroup();if(!s||!g)return alert('Выберите предмет и группу');var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:Arial,sans-serif;font-size:12pt}td,th{border:1px solid #999;padding:6px 8px}.title{font-weight:bold;background:#dde8ff}.meta{font-weight:bold;background:#f3f6ff}.name{width:260px;mso-number-format:"\\@"}.date{width:115px;text-align:center;mso-number-format:"\\@"}.mark{width:70px;text-align:center;mso-number-format:"\\@"}</style></head><body><table>';html+='<tr><td class="title">Предмет</td><td colspan="'+Math.max(1,g.dates.length+1)+'">'+excelEscape(s.name)+'</td></tr><tr><td class="title">Группа</td><td colspan="'+Math.max(1,g.dates.length+1)+'">'+excelEscape(g.name)+'</td></tr><tr><td colspan="'+(g.dates.length+2)+'"></td></tr><tr><td></td><td class="meta">Дата</td>';g.dates.forEach(function(d){html+='<td class="date">'+excelEscape(formatDate(d))+'</td>'});html+='</tr><tr><td></td><td class="meta">Тема</td>';g.dates.forEach(function(d){html+='<td>'+excelEscape(g.topics[d]||'')+'</td>'});html+='</tr><tr><th>№</th><th class="name">ФИО</th>';g.dates.forEach(function(){html+='<th class="mark"></th>'});html+='</tr>';g.students.forEach(function(st,i){html+='<tr><td>'+(i+1)+'</td><td class="name">'+excelEscape(st.name)+'</td>';g.dates.forEach(function(d){var status=g.attendance[d]&&g.attendance[d][st.id]?g.attendance[d][st.id]:'',grade=g.grades[d]&&g.grades[d][st.id]?g.grades[d][st.id]:'',cell='';if(status==='absent')cell='Н';else if(status==='excused')cell='У';else if(status==='sick')cell='Б';else if(grade)cell=grade;html+='<td class="mark">'+excelEscape(cell)+'</td>'});html+='</tr>'});html+='</table>
-<script>
-/* --- Домашнее задание и более аккуратная таблица --- */
-(function(){
-  var editingHomeworkId = '';
-
-  function getUser(){
-    try{return JSON.parse(localStorage.getItem('journalCurrentUser') || 'null')}catch(e){return null}
-  }
-  function isTeacher(){var u=getUser(); return u && u.role==='teacher'}
-  function escLocal(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
-  function safeJson(res){return res.text().then(function(text){try{return JSON.parse(text)}catch(e){throw new Error('Сервер вернул не JSON')}})}
-  function todayStr(){return new Date().toISOString().slice(0,10)}
-  function daysLeft(d){if(!d)return null; var a=new Date(todayStr()+'T00:00:00'),b=new Date(d+'T00:00:00'); return Math.round((b-a)/86400000)}
-  function formatDue(d){if(!d)return 'без срока'; try{return new Date(d+'T00:00:00').toLocaleDateString('ru-RU')}catch(e){return d}}
-
-  function subjectsAndGroups(){
-    var result=[];
-    (window.data && data.subjects || []).forEach(function(s){
-      (s.groups||[]).forEach(function(g){ result.push({subjectName:s.name, groupName:g.name}); });
-    });
-    return result;
-  }
-
-  function uniqueSubjectsForHomework(){
-    var map={}; subjectsAndGroups().forEach(function(x){map[x.subjectName]=true}); return Object.keys(map).sort();
-  }
-
-  function fillHomeworkSelects(){
-    var subjectSel=document.getElementById('homeworkSubject');
-    var groupSel=document.getElementById('homeworkGroup');
-    var filterSubject=document.getElementById('homeworkFilterSubject');
-    if(!filterSubject) return;
-    var pairs=subjectsAndGroups();
-    var subjects=uniqueSubjectsForHomework();
-
-    if(subjectSel){
-      var old=subjectSel.value; subjectSel.innerHTML='';
-      if(!subjects.length) subjectSel.innerHTML='<option value="">Сначала создайте предмет</option>';
-      subjects.forEach(function(name){var o=document.createElement('option'); o.value=name; o.textContent=name; subjectSel.appendChild(o)});
-      if(old) subjectSel.value=old;
-    }
-    if(groupSel){
-      var oldG=groupSel.value; groupSel.innerHTML='';
-      var selectedSubject=subjectSel ? subjectSel.value : '';
-      var groups=pairs.filter(function(x){return !selectedSubject || x.subjectName===selectedSubject}).map(function(x){return x.groupName});
-      groups=[].filter.call(groups, function(v,i,a){return a.indexOf(v)===i}).sort();
-      if(!groups.length) groupSel.innerHTML='<option value="">Сначала создайте группу</option>';
-      groups.forEach(function(name){var o=document.createElement('option'); o.value=name; o.textContent=name; groupSel.appendChild(o)});
-      if(oldG) groupSel.value=oldG;
-    }
-    var oldF=filterSubject.value; filterSubject.innerHTML='<option value="">Все предметы</option>';
-    subjects.forEach(function(name){var o=document.createElement('option'); o.value=name; o.textContent=name; filterSubject.appendChild(o)});
-    if(oldF) filterSubject.value=oldF;
-  }
-
-  function clearHomeworkForm(){
-    editingHomeworkId='';
-    ['homeworkTitle','homeworkDescription','homeworkLinks'].forEach(function(id){var el=document.getElementById(id); if(el) el.value=''});
-    var due=document.getElementById('homeworkDueDate'); if(due) due.value='';
-    var btn=document.getElementById('saveHomeworkBtn'); if(btn) btn.textContent='Добавить ДЗ';
-  }
-
-  async function saveHomework(){
-    var u=getUser(); if(!u || u.role!=='teacher') return alert('Добавлять ДЗ может только учитель');
-    var body={
-      user:u,
-      id:editingHomeworkId,
-      subjectName:(document.getElementById('homeworkSubject')||{}).value||'',
-      groupName:(document.getElementById('homeworkGroup')||{}).value||'',
-      dueDate:(document.getElementById('homeworkDueDate')||{}).value||'',
-      title:(document.getElementById('homeworkTitle')||{}).value||'',
-      description:(document.getElementById('homeworkDescription')||{}).value||'',
-      links:(document.getElementById('homeworkLinks')||{}).value||''
-    };
-    if(!body.subjectName || !body.groupName || !body.title.trim()) return alert('Заполните предмет, группу и название задания');
-    try{
-      var res=await fetch('/api/homework-save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
-      clearHomeworkForm(); await loadHomeworkList();
-      var st=document.getElementById('saveIndicator'); if(st){st.textContent=json.message||'ДЗ сохранено'; st.className='saved'}
-    }catch(e){alert('Не удалось сохранить ДЗ: '+e.message)}
-  }
-
-  async function deleteHomework(id){
-    var u=getUser(); if(!u || u.role!=='teacher') return alert('Удалять ДЗ может только учитель');
-    if(!confirm('Удалить домашнее задание?')) return;
-    try{
-      var res=await fetch('/api/homework-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u,id:id})});
-      var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
-      await loadHomeworkList();
-    }catch(e){alert('Не удалось удалить ДЗ: '+e.message)}
-  }
-
-  function editHomework(item){
-    editingHomeworkId=item._id||'';
-    fillHomeworkSelects();
-    var s=document.getElementById('homeworkSubject'),g=document.getElementById('homeworkGroup');
-    if(s){s.value=item.subjectName||''; fillHomeworkSelects();}
-    if(g) g.value=item.groupName||'';
-    var d=document.getElementById('homeworkDueDate'); if(d) d.value=item.dueDate||'';
-    var t=document.getElementById('homeworkTitle'); if(t) t.value=item.title||'';
-    var desc=document.getElementById('homeworkDescription'); if(desc) desc.value=item.description||'';
-    var links=document.getElementById('homeworkLinks'); if(links) links.value=item.links||'';
-    var btn=document.getElementById('saveHomeworkBtn'); if(btn) btn.textContent='Сохранить изменения';
-    document.getElementById('homeworkPanel').scrollIntoView({behavior:'smooth', block:'start'});
-  }
-
-  function renderHomework(items){
-    var box=document.getElementById('homeworkList'); if(!box) return;
-    var mode=(document.getElementById('homeworkFilterMode')||{}).value||'actual';
-    var subj=(document.getElementById('homeworkFilterSubject')||{}).value||'';
-    var filtered=(items||[]).filter(function(item){
-      if(subj && item.subjectName!==subj) return false;
-      var left=daysLeft(item.dueDate);
-      if(mode==='actual') return left===null || left>=0;
-      if(mode==='overdue') return left!==null && left<0;
-      return true;
-    });
-    if(!filtered.length){box.innerHTML='<div class="empty">Заданий пока нет.</div>';return;}
-    box.innerHTML=filtered.map(function(item){
-      var left=daysLeft(item.dueDate), cls='', label=formatDue(item.dueDate);
-      if(left!==null && left<0){cls=' overdue'; label+=' · просрочено'}
-      else if(left!==null && left<=2){cls=' due-soon'; label+=' · скоро'}
-      var links=item.links?'<div class="homework-links"><b>Материалы:</b><br>'+escLocal(item.links)+'</div>':'';
-      var actions=isTeacher()?'<div class="homework-actions"><button class="small-btn secondary" data-edit-hw="'+escLocal(item._id)+'">Изменить</button><button class="small-btn danger" data-del-hw="'+escLocal(item._id)+'">Удалить</button></div>':'<div class="homework-actions"><button class="small-btn secondary" data-copy-hw="'+escLocal(item._id)+'">Скопировать</button></div>';
-      return '<article class="homework-card" data-hw-id="'+escLocal(item._id)+'"><h3>'+escLocal(item.title)+'</h3><div class="homework-meta"><span class="homework-badge">'+escLocal(item.subjectName)+'</span><span class="homework-badge">'+escLocal(item.groupName)+'</span><span class="homework-badge'+cls+'">'+escLocal(label)+'</span></div><div class="homework-text">'+escLocal(item.description||'Без описания')+'</div>'+links+actions+'</article>';
-    }).join('');
-    box.querySelectorAll('[data-del-hw]').forEach(function(b){b.onclick=function(){deleteHomework(b.getAttribute('data-del-hw'))}});
-    box.querySelectorAll('[data-edit-hw]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-edit-hw'); var item=filtered.find(function(x){return x._id===id}); if(item) editHomework(item)}});
-    box.querySelectorAll('[data-copy-hw]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-copy-hw'); var card=box.querySelector('[data-hw-id="'+id+'"]'); if(card && navigator.clipboard) navigator.clipboard.writeText(card.innerText).then(function(){alert('ДЗ скопировано')});}});
-  }
-
-  window.loadHomeworkList = async function(){
-    var u=getUser(); if(!u) return;
-    fillHomeworkSelects();
-    try{
-      var res=await fetch('/api/homework-list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u})});
-      var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
-      renderHomework(json.items||[]);
-    }catch(e){var box=document.getElementById('homeworkList'); if(box) box.innerHTML='<div class="empty">Ошибка загрузки ДЗ: '+escLocal(e.message)+'</div>';}
-  };
-
-  function initHomework(){
-    fillHomeworkSelects();
-    var s=document.getElementById('homeworkSubject'); if(s) s.onchange=fillHomeworkSelects;
-    var b=document.getElementById('saveHomeworkBtn'); if(b) b.onclick=saveHomework;
-    var c=document.getElementById('clearHomeworkFormBtn'); if(c) c.onclick=clearHomeworkForm;
-    var r=document.getElementById('refreshHomeworkBtn'); if(r) r.onclick=loadHomeworkList;
-    var fs=document.getElementById('homeworkFilterSubject'); if(fs) fs.onchange=loadHomeworkList;
-    var fm=document.getElementById('homeworkFilterMode'); if(fm) fm.onchange=loadHomeworkList;
-    if(isTeacher()){var p=document.getElementById('homeworkPanel'); if(p) p.classList.remove('student-homework-view');}
-    loadHomeworkList();
-  }
-
-  var oldRenderSubjects=window.renderSubjects;
-  if(typeof oldRenderSubjects==='function'){
-    window.renderSubjects=renderSubjects=function(){oldRenderSubjects.apply(this,arguments); setTimeout(fillHomeworkSelects,0)};
-  }
-  var oldRenderGroups=window.renderGroups;
-  if(typeof oldRenderGroups==='function'){
-    window.renderGroups=renderGroups=function(){oldRenderGroups.apply(this,arguments); setTimeout(fillHomeworkSelects,0)};
-  }
-  window.addEventListener('load',function(){setTimeout(initHomework,900)});
-})();
-</script>
-
-</body></html>';var blob=new Blob(['\uFEFF'+html],{type:'application/vnd.ms-excel;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=safeFileName(s.name+'_'+g.name+'_журнал')+'.xls';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
+function exportExcel(){var s=getCurrentSubject(),g=getCurrentGroup();if(!s||!g)return alert('Выберите предмет и группу');var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:Arial,sans-serif;font-size:12pt}td,th{border:1px solid #999;padding:6px 8px}.title{font-weight:bold;background:#dde8ff}.meta{font-weight:bold;background:#f3f6ff}.name{width:260px;mso-number-format:"\\@"}.date{width:115px;text-align:center;mso-number-format:"\\@"}.mark{width:70px;text-align:center;mso-number-format:"\\@"}</style></head><body><table>';html+='<tr><td class="title">Предмет</td><td colspan="'+Math.max(1,g.dates.length+1)+'">'+excelEscape(s.name)+'</td></tr><tr><td class="title">Группа</td><td colspan="'+Math.max(1,g.dates.length+1)+'">'+excelEscape(g.name)+'</td></tr><tr><td colspan="'+(g.dates.length+2)+'"></td></tr><tr><td></td><td class="meta">Дата</td>';g.dates.forEach(function(d){html+='<td class="date">'+excelEscape(formatDate(d))+'</td>'});html+='</tr><tr><td></td><td class="meta">Тема</td>';g.dates.forEach(function(d){html+='<td>'+excelEscape(g.topics[d]||'')+'</td>'});html+='</tr><tr><th>№</th><th class="name">ФИО</th>';g.dates.forEach(function(){html+='<th class="mark"></th>'});html+='</tr>';g.students.forEach(function(st,i){html+='<tr><td>'+(i+1)+'</td><td class="name">'+excelEscape(st.name)+'</td>';g.dates.forEach(function(d){var status=g.attendance[d]&&g.attendance[d][st.id]?g.attendance[d][st.id]:'',grade=g.grades[d]&&g.grades[d][st.id]?g.grades[d][st.id]:'',cell='';if(status==='absent')cell='Н';else if(status==='excused')cell='У';else if(status==='sick')cell='Б';else if(grade)cell=grade;html+='<td class="mark">'+excelEscape(cell)+'</td>'});html+='</tr>'});html+='</table></body></html>';var blob=new Blob(['\uFEFF'+html],{type:'application/vnd.ms-excel;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=safeFileName(s.name+'_'+g.name+'_журнал')+'.xls';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
 function toDateInputValue(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}function formatDate(d){var p=(d||'').split('-');return p.length===3?p[2]+'.'+p[1]+'.'+p[0]:d}function shortStatusText(s){return s==='absent'?'Н — прогул':s==='excused'?'У — уваж.':s==='sick'?'Б — больн.':'—'}function statusText(s){return s==='absent'?'Прогул':s==='excused'?'Уважительная':s==='sick'?'Больничный':'Очистить'}function escapeHtml(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}function esc(t){return escapeHtml(t)}function excelEscape(v){return escapeHtml(v==null?'':v)}function safeFileName(n){return String(n||'journal').replace(/[\\/:*?\"<>|]/g,'_').slice(0,120)}
 initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups('');renderTable();
 </script>
@@ -1020,5 +853,171 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
 })();
 </script>
 
+
+<script>
+/* --- Домашнее задание и более аккуратная таблица --- */
+(function(){
+  var editingHomeworkId = '';
+
+  function getUser(){
+    try{return JSON.parse(localStorage.getItem('journalCurrentUser') || 'null')}catch(e){return null}
+  }
+  function isTeacher(){var u=getUser(); return u && u.role==='teacher'}
+  function escLocal(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+  function safeJson(res){return res.text().then(function(text){try{return JSON.parse(text)}catch(e){throw new Error('Сервер вернул не JSON')}})}
+  function todayStr(){return new Date().toISOString().slice(0,10)}
+  function daysLeft(d){if(!d)return null; var a=new Date(todayStr()+'T00:00:00'),b=new Date(d+'T00:00:00'); return Math.round((b-a)/86400000)}
+  function formatDue(d){if(!d)return 'без срока'; try{return new Date(d+'T00:00:00').toLocaleDateString('ru-RU')}catch(e){return d}}
+
+  function subjectsAndGroups(){
+    var result=[];
+    (window.data && data.subjects || []).forEach(function(s){
+      (s.groups||[]).forEach(function(g){ result.push({subjectName:s.name, groupName:g.name}); });
+    });
+    return result;
+  }
+
+  function uniqueSubjectsForHomework(){
+    var map={}; subjectsAndGroups().forEach(function(x){map[x.subjectName]=true}); return Object.keys(map).sort();
+  }
+
+  function fillHomeworkSelects(){
+    var subjectSel=document.getElementById('homeworkSubject');
+    var groupSel=document.getElementById('homeworkGroup');
+    var filterSubject=document.getElementById('homeworkFilterSubject');
+    if(!filterSubject) return;
+    var pairs=subjectsAndGroups();
+    var subjects=uniqueSubjectsForHomework();
+
+    if(subjectSel){
+      var old=subjectSel.value; subjectSel.innerHTML='';
+      if(!subjects.length) subjectSel.innerHTML='<option value="">Сначала создайте предмет</option>';
+      subjects.forEach(function(name){var o=document.createElement('option'); o.value=name; o.textContent=name; subjectSel.appendChild(o)});
+      if(old) subjectSel.value=old;
+    }
+    if(groupSel){
+      var oldG=groupSel.value; groupSel.innerHTML='';
+      var selectedSubject=subjectSel ? subjectSel.value : '';
+      var groups=pairs.filter(function(x){return !selectedSubject || x.subjectName===selectedSubject}).map(function(x){return x.groupName});
+      groups=[].filter.call(groups, function(v,i,a){return a.indexOf(v)===i}).sort();
+      if(!groups.length) groupSel.innerHTML='<option value="">Сначала создайте группу</option>';
+      groups.forEach(function(name){var o=document.createElement('option'); o.value=name; o.textContent=name; groupSel.appendChild(o)});
+      if(oldG) groupSel.value=oldG;
+    }
+    var oldF=filterSubject.value; filterSubject.innerHTML='<option value="">Все предметы</option>';
+    subjects.forEach(function(name){var o=document.createElement('option'); o.value=name; o.textContent=name; filterSubject.appendChild(o)});
+    if(oldF) filterSubject.value=oldF;
+  }
+
+  function clearHomeworkForm(){
+    editingHomeworkId='';
+    ['homeworkTitle','homeworkDescription','homeworkLinks'].forEach(function(id){var el=document.getElementById(id); if(el) el.value=''});
+    var due=document.getElementById('homeworkDueDate'); if(due) due.value='';
+    var btn=document.getElementById('saveHomeworkBtn'); if(btn) btn.textContent='Добавить ДЗ';
+  }
+
+  async function saveHomework(){
+    var u=getUser(); if(!u || u.role!=='teacher') return alert('Добавлять ДЗ может только учитель');
+    var body={
+      user:u,
+      id:editingHomeworkId,
+      subjectName:(document.getElementById('homeworkSubject')||{}).value||'',
+      groupName:(document.getElementById('homeworkGroup')||{}).value||'',
+      dueDate:(document.getElementById('homeworkDueDate')||{}).value||'',
+      title:(document.getElementById('homeworkTitle')||{}).value||'',
+      description:(document.getElementById('homeworkDescription')||{}).value||'',
+      links:(document.getElementById('homeworkLinks')||{}).value||''
+    };
+    if(!body.subjectName || !body.groupName || !body.title.trim()) return alert('Заполните предмет, группу и название задания');
+    try{
+      var res=await fetch('/api/homework-save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
+      clearHomeworkForm(); await loadHomeworkList();
+      var st=document.getElementById('saveIndicator'); if(st){st.textContent=json.message||'ДЗ сохранено'; st.className='saved'}
+    }catch(e){alert('Не удалось сохранить ДЗ: '+e.message)}
+  }
+
+  async function deleteHomework(id){
+    var u=getUser(); if(!u || u.role!=='teacher') return alert('Удалять ДЗ может только учитель');
+    if(!confirm('Удалить домашнее задание?')) return;
+    try{
+      var res=await fetch('/api/homework-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u,id:id})});
+      var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
+      await loadHomeworkList();
+    }catch(e){alert('Не удалось удалить ДЗ: '+e.message)}
+  }
+
+  function editHomework(item){
+    editingHomeworkId=item._id||'';
+    fillHomeworkSelects();
+    var s=document.getElementById('homeworkSubject'),g=document.getElementById('homeworkGroup');
+    if(s){s.value=item.subjectName||''; fillHomeworkSelects();}
+    if(g) g.value=item.groupName||'';
+    var d=document.getElementById('homeworkDueDate'); if(d) d.value=item.dueDate||'';
+    var t=document.getElementById('homeworkTitle'); if(t) t.value=item.title||'';
+    var desc=document.getElementById('homeworkDescription'); if(desc) desc.value=item.description||'';
+    var links=document.getElementById('homeworkLinks'); if(links) links.value=item.links||'';
+    var btn=document.getElementById('saveHomeworkBtn'); if(btn) btn.textContent='Сохранить изменения';
+    document.getElementById('homeworkPanel').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function renderHomework(items){
+    var box=document.getElementById('homeworkList'); if(!box) return;
+    var mode=(document.getElementById('homeworkFilterMode')||{}).value||'actual';
+    var subj=(document.getElementById('homeworkFilterSubject')||{}).value||'';
+    var filtered=(items||[]).filter(function(item){
+      if(subj && item.subjectName!==subj) return false;
+      var left=daysLeft(item.dueDate);
+      if(mode==='actual') return left===null || left>=0;
+      if(mode==='overdue') return left!==null && left<0;
+      return true;
+    });
+    if(!filtered.length){box.innerHTML='<div class="empty">Заданий пока нет.</div>';return;}
+    box.innerHTML=filtered.map(function(item){
+      var left=daysLeft(item.dueDate), cls='', label=formatDue(item.dueDate);
+      if(left!==null && left<0){cls=' overdue'; label+=' · просрочено'}
+      else if(left!==null && left<=2){cls=' due-soon'; label+=' · скоро'}
+      var links=item.links?'<div class="homework-links"><b>Материалы:</b><br>'+escLocal(item.links)+'</div>':'';
+      var actions=isTeacher()?'<div class="homework-actions"><button class="small-btn secondary" data-edit-hw="'+escLocal(item._id)+'">Изменить</button><button class="small-btn danger" data-del-hw="'+escLocal(item._id)+'">Удалить</button></div>':'<div class="homework-actions"><button class="small-btn secondary" data-copy-hw="'+escLocal(item._id)+'">Скопировать</button></div>';
+      return '<article class="homework-card" data-hw-id="'+escLocal(item._id)+'"><h3>'+escLocal(item.title)+'</h3><div class="homework-meta"><span class="homework-badge">'+escLocal(item.subjectName)+'</span><span class="homework-badge">'+escLocal(item.groupName)+'</span><span class="homework-badge'+cls+'">'+escLocal(label)+'</span></div><div class="homework-text">'+escLocal(item.description||'Без описания')+'</div>'+links+actions+'</article>';
+    }).join('');
+    box.querySelectorAll('[data-del-hw]').forEach(function(b){b.onclick=function(){deleteHomework(b.getAttribute('data-del-hw'))}});
+    box.querySelectorAll('[data-edit-hw]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-edit-hw'); var item=filtered.find(function(x){return x._id===id}); if(item) editHomework(item)}});
+    box.querySelectorAll('[data-copy-hw]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-copy-hw'); var card=box.querySelector('[data-hw-id="'+id+'"]'); if(card && navigator.clipboard) navigator.clipboard.writeText(card.innerText).then(function(){alert('ДЗ скопировано')});}});
+  }
+
+  window.loadHomeworkList = async function(){
+    var u=getUser(); if(!u) return;
+    fillHomeworkSelects();
+    try{
+      var res=await fetch('/api/homework-list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u})});
+      var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
+      renderHomework(json.items||[]);
+    }catch(e){var box=document.getElementById('homeworkList'); if(box) box.innerHTML='<div class="empty">Ошибка загрузки ДЗ: '+escLocal(e.message)+'</div>';}
+  };
+
+  function initHomework(){
+    fillHomeworkSelects();
+    var s=document.getElementById('homeworkSubject'); if(s) s.onchange=fillHomeworkSelects;
+    var b=document.getElementById('saveHomeworkBtn'); if(b) b.onclick=saveHomework;
+    var c=document.getElementById('clearHomeworkFormBtn'); if(c) c.onclick=clearHomeworkForm;
+    var r=document.getElementById('refreshHomeworkBtn'); if(r) r.onclick=loadHomeworkList;
+    var fs=document.getElementById('homeworkFilterSubject'); if(fs) fs.onchange=loadHomeworkList;
+    var fm=document.getElementById('homeworkFilterMode'); if(fm) fm.onchange=loadHomeworkList;
+    if(isTeacher()){var p=document.getElementById('homeworkPanel'); if(p) p.classList.remove('student-homework-view');}
+    loadHomeworkList();
+  }
+
+  var oldRenderSubjects=window.renderSubjects;
+  if(typeof oldRenderSubjects==='function'){
+    window.renderSubjects=renderSubjects=function(){oldRenderSubjects.apply(this,arguments); setTimeout(fillHomeworkSelects,0)};
+  }
+  var oldRenderGroups=window.renderGroups;
+  if(typeof oldRenderGroups==='function'){
+    window.renderGroups=renderGroups=function(){oldRenderGroups.apply(this,arguments); setTimeout(fillHomeworkSelects,0)};
+  }
+  window.addEventListener('load',function(){setTimeout(initHomework,900)});
+})();
+</script>
 </body>
 </html>
