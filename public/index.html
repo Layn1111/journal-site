@@ -18,15 +18,13 @@
     <h2>Вход в журнал</h2>
     <p>Войдите как учитель или ученик.</p>
     <label for="authUsername">Логин</label>
-    <input id="authUsername" type="text" placeholder="teacher или group10a" autocomplete="username">
+    <input id="authUsername" type="text" placeholder="Учитель или логин группы" autocomplete="username">
     <label for="authPassword">Пароль</label>
-    <input id="authPassword" type="password" placeholder="1234" autocomplete="current-password">
+    <input id="authPassword" type="password" placeholder="Введите пароль" autocomplete="current-password">
     <div class="auth-actions">
       <button id="authLoginBtn" type="button">Войти</button>
-      <button id="authSetupBtn" class="secondary" type="button">Создать тестовые данные</button>
     </div>
     <p id="authMessage" class="auth-msg"></p>
-    <p>Демо: <b>teacher / 1234</b> или <b>group10a / 1234</b></p>
   </div>
 </div>
 <div id="sessionBar"><span id="sessionInfo"></span><button id="logoutBtn" class="secondary" type="button">Выйти</button></div>
@@ -371,7 +369,8 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   }
 
   document.getElementById('authLoginBtn').onclick = login;
-  document.getElementById('authSetupBtn').onclick = setup;
+  var authSetupBtn = document.getElementById('authSetupBtn');
+  if(authSetupBtn) authSetupBtn.onclick = setup;
   document.getElementById('logoutBtn').onclick = logout;
   document.getElementById('authPassword').addEventListener('keydown', function(e){ if(e.key === 'Enter') login(); });
   document.getElementById('authUsername').addEventListener('keydown', function(e){ if(e.key === 'Enter') login(); });

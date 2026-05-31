@@ -30,6 +30,28 @@ const stateSchema = new mongoose.Schema({
 
 const AppState = mongoose.model("AppState", stateSchema);
 
+const TEACHER_USERNAME = "Учитель";
+const TEACHER_PASSWORD = "322С322";
+
+async function ensureTeacherAccount() {
+  const passwordHash = await bcrypt.hash(TEACHER_PASSWORD, 10);
+
+  await User.findOneAndUpdate(
+    { username: TEACHER_USERNAME },
+    {
+      username: TEACHER_USERNAME,
+      passwordHash,
+      role: "teacher",
+      groupName: "",
+      fullName: "Учитель"
+    },
+    { upsert: true, new: true }
+  );
+
+  // Старый демо-логин больше не нужен. Если он есть, удаляем его.
+  await User.deleteOne({ username: "teacher", role: "teacher" });
+}
+
 function makeId(text) {
   text = String(text || "empty");
   let h = 0;
@@ -41,48 +63,8 @@ function makeId(text) {
 }
 
 function defaultJournalData() {
-  const subjectId = makeId("subject_Математика");
-  const groupAId = makeId("group_Математика_10-А");
-  const groupBId = makeId("group_Математика_10-Б");
-  const ivanovId = makeId("10-А_Иванов И.И.");
-  const petrovId = makeId("10-А_Петров П.П.");
-  const sidorovId = makeId("10-Б_Сидоров С.С.");
-  const date = "2026-05-31";
-
   return {
-    subjects: [
-      {
-        id: subjectId,
-        name: "Математика",
-        groups: [
-          {
-            id: groupAId,
-            name: "10-А",
-            students: [
-              { id: ivanovId, name: "Иванов И.И." },
-              { id: petrovId, name: "Петров П.П." }
-            ],
-            dates: [date],
-            topics: { [date]: "Тестовая тема" },
-            attendance: { [date]: { [ivanovId]: "", [petrovId]: "excused" } },
-            grades: { [date]: { [ivanovId]: "5", [petrovId]: "" } },
-            notes: {}
-          },
-          {
-            id: groupBId,
-            name: "10-Б",
-            students: [
-              { id: sidorovId, name: "Сидоров С.С." }
-            ],
-            dates: [date],
-            topics: { [date]: "Тестовая тема" },
-            attendance: { [date]: { [sidorovId]: "sick" } },
-            grades: { [date]: { [sidorovId]: "" } },
-            notes: {}
-          }
-        ]
-      }
-    ],
+    subjects: [],
     scale: "2-5"
   };
 }
@@ -125,31 +107,11 @@ app.get("/api/test", (req, res) => {
 
 app.post("/api/setup", async (req, res) => {
   try {
-    const teacherExists = await User.findOne({ username: "teacher" });
-    if (!teacherExists) {
-      await User.create({
-        username: "teacher",
-        passwordHash: await bcrypt.hash("1234", 10),
-        role: "teacher",
-        fullName: "Учитель"
-      });
-    }
-
-    const studentExists = await User.findOne({ username: "student" });
-    if (!studentExists) {
-      await User.create({
-        username: "student",
-        passwordHash: await bcrypt.hash("1234", 10),
-        role: "student",
-        groupName: "10-А",
-        fullName: "Иванов И.И."
-      });
-    }
-
+    await ensureTeacherAccount();
     await ensureState();
-    res.json({ message: "Тестовые данные созданы" });
+    res.json({ message: "Учётная запись учителя готова" });
   } catch (error) {
-    res.status(500).json({ message: "Ошибка создания тестовых данных", error: error.message });
+    res.status(500).json({ message: "Ошибка подготовки системы", error: error.message });
   }
 });
 
@@ -360,6 +322,8 @@ async function start() {
     console.log("Пробую подключиться к MongoDB...");
     await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 10000 });
     console.log("MongoDB подключена");
+    await ensureTeacherAccount();
+    await ensureState();
     app.listen(PORT, () => console.log(`Сервер запущен: http://localhost:${PORT}`));
   } catch (err) {
     console.log("Ошибка подключения MongoDB:");
