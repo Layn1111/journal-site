@@ -30,6 +30,35 @@ const stateSchema = new mongoose.Schema({
 
 const AppState = mongoose.model("AppState", stateSchema);
 
+const activitySchema = new mongoose.Schema({
+  createdAt: { type: Date, default: Date.now },
+  username: { type: String, default: "" },
+  role: { type: String, default: "" },
+  action: { type: String, required: true },
+  details: { type: String, default: "" }
+});
+
+const Activity = mongoose.model("Activity", activitySchema);
+
+async function addActivity(user, action, details) {
+  try {
+    await Activity.create({
+      username: user && user.username ? user.username : "system",
+      role: user && user.role ? user.role : "system",
+      action: String(action || "Действие"),
+      details: String(details || "")
+    });
+
+    const count = await Activity.countDocuments();
+    if (count > 500) {
+      const old = await Activity.find().sort({ createdAt: 1 }).limit(count - 500).select("_id");
+      await Activity.deleteMany({ _id: { $in: old.map(x => x._id) } });
+    }
+  } catch (e) {
+    console.log("Не удалось записать историю:", e.message);
+  }
+}
+
 const TEACHER_USERNAME = process.env.TEACHER_LOGIN || "Учитель";
 const TEACHER_PASSWORD = process.env.TEACHER_PASSWORD;
 
@@ -200,6 +229,7 @@ app.post("/api/group-user", async (req, res) => {
       { upsert: true, new: true }
     );
 
+    await addActivity(user, "Доступ группы", "Логин " + update.username + " привязан к группе " + update.groupName);
     res.json({ message: "Доступ для группы сохранён. Этот логин работает для всех предметов, где есть эта группа." });
   } catch (error) {
     res.status(500).json({
@@ -232,6 +262,7 @@ app.post("/api/group-user-delete", async (req, res) => {
       return res.status(404).json({ message: "Такой групповой доступ не найден" });
     }
 
+    await addActivity(user, "Удалён доступ", "Логин " + username + " удалён");
     res.json({ message: "Доступ удалён" });
   } catch (error) {
     res.status(500).json({
@@ -269,6 +300,7 @@ app.delete("/api/group-access/:username", async (req, res) => {
       return res.status(404).json({ message: "Такой групповой доступ не найден" });
     }
 
+    await addActivity(user, "Удалён доступ", "Логин " + username + " удалён");
     res.json({ message: "Доступ удалён" });
   } catch (error) {
     res.status(500).json({
@@ -293,6 +325,7 @@ app.post("/api/state", async (req, res) => {
         { upsert: true, new: true }
       );
 
+      await addActivity(user, "Сохранение журнала", "Данные журнала сохранены");
       return res.json({ message: "Данные сохранены" });
     }
 
@@ -354,9 +387,38 @@ app.post("/api/backup/import", async (req, res) => {
       { upsert: true, new: true }
     );
 
+    await addActivity(user, "Восстановлена резервная копия", "Журнал заменён данными из файла");
     res.json({ message: "Резервная копия восстановлена" });
   } catch (error) {
     res.status(500).json({ message: "Ошибка восстановления резервной копии", error: error.message });
+  }
+});
+
+
+app.post("/api/activity-list", async (req, res) => {
+  try {
+    const user = req.body.user || {};
+    if (user.role !== "teacher") {
+      return res.status(403).json({ message: "Историю может смотреть только учитель" });
+    }
+
+    const items = await Activity.find().sort({ createdAt: -1 }).limit(120).lean();
+    res.json({ items });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка загрузки истории", error: error.message });
+  }
+});
+
+app.post("/api/activity-add", async (req, res) => {
+  try {
+    const user = req.body.user || {};
+    if (user.role !== "teacher") {
+      return res.status(403).json({ message: "Историю может записывать только учитель" });
+    }
+    await addActivity(user, req.body.action || "Действие", req.body.details || "");
+    res.json({ message: "Записано" });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка записи истории", error: error.message });
   }
 });
 

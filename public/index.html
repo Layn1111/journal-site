@@ -22,6 +22,9 @@
 .section-intro{max-width:1700px;margin:14px auto 0;padding:0 16px;color:var(--muted)}
 @media(max-width:800px){.app-tabs{padding:0 12px;gap:7px}.tab-btn{flex:1;min-width:44%;padding:10px 8px}#saveIndicator{left:12px;right:12px;text-align:center}}
 
+
+.student-tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.student-tools-grid textarea{width:100%;min-height:120px}.history-item{display:grid;grid-template-columns:180px 160px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);align-items:start}.history-item:last-child{border-bottom:0}.history-date{color:var(--muted);font-size:13px}.history-action{font-weight:800;color:var(--primary)}.history-details{font-size:14px}@media(max-width:800px){.student-tools-grid{grid-template-columns:1fr}.history-item{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body class="theme-light app-locked">
@@ -54,6 +57,8 @@
 <section class="panel" id="toolsPanel"><h2 class="panel-title" data-collapse="toolsPanel"><span>4. Инструменты</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="filterSelect">Фильтр таблицы</label><select id="filterSelect"><option value="all">Все ученики</option><option value="absences">Есть пропуски</option><option value="bad">Есть двойки</option><option value="nogrades">Без оценок</option><option value="warnings">Предупреждения</option></select></div><button class="secondary" id="toggleWarningsBtn">Выделить проблемных</button><button class="secondary" id="backupBtn">Сохранить резервную копию</button><div><label for="restoreInput">Загрузить копию</label><input id="restoreInput" type="file" accept="application/json"></div><div><label for="scaleSelect">Система оценок</label><select id="scaleSelect"><option value="2-5">2–5</option><option value="1-10">1–10</option><option value="pass">Зачёт / незачёт</option></select></div></div></div></section>
 <section class="panel" id="tablePanel"><h2 class="panel-title" data-collapse="tablePanel"><span>5. Таблица</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="searchDate">Найти дату</label><input id="searchDate" type="date"></div><button class="secondary" id="findDateBtn">Перейти к дате</button><div><label for="searchTopic">Найти тему</label><input id="searchTopic" type="text" maxlength="80" placeholder="Например: дроби"></div><button class="secondary" id="findTopicBtn">Найти тему</button><button class="secondary" id="clearSearchBtn">Сбросить поиск</button><button class="secondary" id="notesBtn">Заметки ученика</button></div><p class="hint">У каждой даты можно написать тему. Нажмите Н/У/Б или выберите оценку.</p><div id="tableArea"></div></div></section>
 <section class="panel" id="analyticsPanel"><h2 class="panel-title" data-collapse="analyticsPanel"><span>6. Аналитика</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="analyticsMode">Считать по</label><select id="analyticsMode"><option value="subject">Все группы предмета</option><option value="group">Выбранная группа</option><option value="student">Один ученик</option></select></div><div><label for="analyticsStudent">Ученик</label><select id="analyticsStudent"></select></div><div><label for="analyticsView">Показать</label><select id="analyticsView"><option value="all">Оценки и посещаемость</option><option value="attendance">Только посещаемость</option><option value="grades">Только оценки</option></select></div><div><label for="periodFrom">Итог с</label><input id="periodFrom" type="date"></div><div><label for="periodTo">Итог по</label><input id="periodTo" type="date"></div><button class="secondary" id="refreshAnalyticsBtn">Обновить аналитику</button><button class="secondary" id="summaryBtn">Итоговая ведомость</button></div><div id="analyticsArea"></div><div id="summaryArea"></div></div></section>
+
+<section class="panel" id="historyPanel"><h2 class="panel-title" data-collapse="historyPanel"><span>История изменений</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><button id="refreshHistoryBtn" class="secondary" type="button">Обновить историю</button></div><p class="hint">Здесь отображаются последние действия учителя: изменения журнала, доступов и резервных копий.</p><div id="historyList" class="empty">История пока не загружена.</div></div></section>
 </main>
 <div id="infoModal" class="modal-backdrop"><div class="modal"><h2>Инструкция</h2><ol><li>Создайте предмет и группу.</li><li>Добавьте студентов и даты. Можно добавить период дат.</li><li>В каждой дате напишите тему занятия.</li><li>Если ученик был — поставьте оценку или оставьте пусто.</li><li>Если отсутствовал — нажмите Н, У или Б. Кнопка × очищает отметку.</li><li>Заголовки блоков сворачивают разделы, чтобы они не мешали.</li><li>Фильтр показывает учеников с пропусками, двойками, без оценок или предупреждениями.</li><li>Резервная копия сохраняет все данные в JSON.</li><li>Аналитика считает средний балл и посещаемость по ученику, группе или всем группам предмета.</li><li>На телефоне таблицу можно листать горизонтальным свайпом. Колонка действий скрывается, чтобы таблица не была слишком широкой.</li><li>В теме «Свой градиент» можно выбрать три цвета сверху справа и нажать OK.</li></ol><button id="closeInfoBtn" type="button">Закрыть</button></div></div>
 <div id="notesModal" class="modal-backdrop"><div class="modal"><h2>Заметки ученика</h2><div class="row"><div><label for="notesStudent">Ученик</label><select id="notesStudent"></select></div></div><textarea id="notesText" class="notes-area" maxlength="2000" placeholder="Напишите заметку..."></textarea><div class="row" style="margin-top:12px"><button id="saveNotesBtn">Сохранить заметку</button><button class="secondary" id="closeNotesBtn">Закрыть</button></div></div></div>
@@ -559,7 +564,8 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     table: ['subjectPanel','tablePanel'],
     analytics: ['analyticsPanel'],
     access: ['groupAccessPanel'],
-    tools: ['toolsPanel']
+    tools: ['toolsPanel'],
+    history: ['historyPanel']
   };
   var activeTab = localStorage.getItem('journalActiveTab') || 'journal';
 
@@ -593,7 +599,8 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
         {id:'journal', label:'Журнал', intro:'Основная работа: предметы, группы, ученики, даты и таблица.'},
         {id:'analytics', label:'Аналитика', intro:'Итоги по группе, ученику или предмету.'},
         {id:'access', label:'Доступы', intro:'Логины и пароли для групп. Один логин открывает выбранную группу во всех предметах.'},
-        {id:'tools', label:'Инструменты', intro:'Фильтры, резервные копии, восстановление и настройки оценок.'}
+        {id:'tools', label:'Инструменты', intro:'Фильтры, резервные копии, восстановление и настройки оценок.'},
+        {id:'history', label:'История', intro:'Последние изменения и действия в журнале.'}
       ];
     }
     return [
@@ -625,6 +632,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     activeTab=id;
     localStorage.setItem('journalActiveTab', id);
     renderTabs();
+    if(id==='history' && typeof window.loadHistoryList==='function') window.loadHistoryList();
     window.scrollTo({top:0, behavior:'smooth'});
   }
 
@@ -708,9 +716,90 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     var restore=document.getElementById('restoreInput'); if(restore) restore.onchange=window.restoreBackup;
   }
 
+  function logActivity(action, details){
+    var u=currentUser();
+    if(!u || u.role!=='teacher') return;
+    fetch('/api/activity-add', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u, action:action, details:details||''})}).catch(function(){});
+  }
+
+  function ensureBulkStudentsUi(){
+    if(document.getElementById('bulkStudentsBox')) return;
+    var panel=document.querySelector('#studentsPanel .panel-body');
+    if(!panel) return;
+    var box=document.createElement('div');
+    box.id='bulkStudentsBox';
+    box.className='student-tools-grid';
+    box.innerHTML='<div><label for="bulkStudentsText">Добавить несколько учеников списком</label><textarea id="bulkStudentsText" placeholder="Каждый ученик с новой строки:\nИванов Иван\nПетров Пётр\nСидорова Анна"></textarea><button id="bulkStudentsBtn" class="green" type="button">Добавить список учеников</button></div><div><label for="studentSearchInput">Поиск ученика в таблице</label><input id="studentSearchInput" type="text" placeholder="Начните вводить ФИО"><button id="clearStudentSearchBtn" class="secondary" type="button">Очистить поиск</button><p class="hint">Поиск работает по текущей группе и сразу фильтрует таблицу.</p></div>';
+    panel.appendChild(box);
+    document.getElementById('bulkStudentsBtn').onclick=addStudentsBulk;
+    document.getElementById('studentSearchInput').oninput=function(){ renderTable(); };
+    document.getElementById('clearStudentSearchBtn').onclick=function(){ document.getElementById('studentSearchInput').value=''; renderTable(); };
+  }
+
+  function addStudentsBulk(){
+    var u=currentUser();
+    if(!u || u.role!=='teacher') return alert('Добавлять учеников может только учитель');
+    var g=getCurrentGroup();
+    if(!g) return alert('Сначала выберите группу');
+    var text=document.getElementById('bulkStudentsText').value;
+    var names=text.split(/\r?\n/).map(function(x){return x.trim();}).filter(Boolean);
+    if(!names.length) return alert('Вставьте список учеников');
+    var existing=(g.students||[]).map(function(st){return String(st.name||'').toLowerCase();});
+    var added=[];
+    names.forEach(function(name){
+      if(existing.indexOf(name.toLowerCase())!==-1) return;
+      g.students.push({id:makeId(), name:name});
+      existing.push(name.toLowerCase());
+      added.push(name);
+    });
+    if(!added.length) return alert('Новых учеников нет: все уже есть в группе');
+    document.getElementById('bulkStudentsText').value='';
+    saveData();
+    renderTable();
+    logActivity('Добавлены ученики списком', 'Группа '+(g.name||'')+': '+added.join(', '));
+    alert('Добавлено учеников: '+added.length);
+  }
+
+  var oldStudentMatchesFilter = window.studentMatchesFilter;
+  if(typeof oldStudentMatchesFilter==='function'){
+    window.studentMatchesFilter=function(g, st){
+      var base=oldStudentMatchesFilter(g, st);
+      var input=document.getElementById('studentSearchInput');
+      var q=input ? input.value.trim().toLowerCase() : '';
+      if(!q) return base;
+      return base && String(st.name||'').toLowerCase().indexOf(q)!==-1;
+    };
+    try{studentMatchesFilter=window.studentMatchesFilter}catch(e){}
+  }
+
+  window.loadHistoryList=function(){
+    var u=currentUser();
+    var box=document.getElementById('historyList');
+    if(!box) return;
+    if(!u || u.role!=='teacher') return;
+    box.className='empty';
+    box.textContent='Загрузка истории...';
+    fetch('/api/activity-list', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u})})
+      .then(function(res){return safeJson(res).then(function(body){if(!res.ok) throw new Error(body.message||'Ошибка'); return body;});})
+      .then(function(body){
+        var items=body.items||[];
+        if(!items.length){ box.className='empty'; box.textContent='История пока пустая.'; return; }
+        box.className='chart-box';
+        box.innerHTML=items.map(function(item){
+          var d=item.createdAt ? new Date(item.createdAt).toLocaleString('ru-RU') : '';
+          return '<div class="history-item"><div class="history-date">'+escapeHtml(d)+'</div><div><b>'+escapeHtml(item.username||'')+'</b><br><span class="history-date">'+escapeHtml(item.role||'')+'</span></div><div><div class="history-action">'+escapeHtml(item.action||'')+'</div><div class="history-details">'+escapeHtml(item.details||'')+'</div></div></div>';
+        }).join('');
+      })
+      .catch(function(err){box.className='empty'; box.textContent='Ошибка загрузки истории: '+err.message;});
+  };
+
+  function bindHistory(){
+    var b=document.getElementById('refreshHistoryBtn'); if(b) b.onclick=window.loadHistoryList;
+  }
+
   var oldRenderTable=window.renderTable;
   if(typeof oldRenderTable==='function'){
-    window.renderTable=function(){ oldRenderTable.apply(this, arguments); setTimeout(function(){renderTabs(); wrapSaveData(); rebindTools();}, 0); };
+    window.renderTable=function(){ oldRenderTable.apply(this, arguments); setTimeout(function(){renderTabs(); wrapSaveData(); rebindTools(); ensureBulkStudentsUi(); bindHistory();}, 0); };
     try{renderTable=window.renderTable}catch(e){}
   }
 
@@ -721,7 +810,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   }
 
   window.addEventListener('load', function(){
-    setTimeout(function(){renderTabs(); wrapSaveData(); rebindTools();}, 700);
+    setTimeout(function(){renderTabs(); wrapSaveData(); rebindTools(); ensureBulkStudentsUi(); bindHistory();}, 700);
   });
 })();
 </script>
