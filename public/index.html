@@ -31,7 +31,7 @@
 .table-wrap{border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
 .table-wrap table th,.table-wrap table td{min-width:118px;padding:4px 5px;font-size:12px}
 .table-wrap table th.name,.table-wrap table td.name{width:220px!important;min-width:220px!important;max-width:220px!important;font-size:13px}
-.date-head{min-width:118px;gap:4px}.date-text{font-size:12px}.topic-input{min-width:110px;padding:4px 6px;font-size:11px}.date-head .small-btn{font-size:10px;padding:3px 5px}.cell-box{min-width:108px;gap:3px}.status-value{min-height:18px;padding:2px 5px;font-size:11px}.grade-row{gap:2px}.grade-icon{display:none}.grade-select{width:58px;min-width:58px;padding:3px 4px;font-size:11px}.quick-buttons{opacity:.12;max-height:0;overflow:hidden;transition:.18s ease}.table-wrap td:hover .quick-buttons,.table-wrap td:focus-within .quick-buttons{opacity:1;max-height:26px}.quick-buttons button{width:23px;height:22px;font-size:10px}.compact-table-note{margin:8px 0 0;color:var(--muted);font-size:13px}.student-readonly .quick-buttons{display:none!important}.student-readonly .grade-row{justify-content:center}.student-readonly .status-value{font-size:12px}
+.date-head{min-width:118px;gap:4px}.date-text{font-size:12px}.topic-input{min-width:110px;padding:4px 6px;font-size:11px}.date-head .small-btn{font-size:10px;padding:3px 5px}.cell-box{min-width:108px;gap:3px}.status-value{min-height:18px;padding:2px 5px;font-size:11px}.grade-row{gap:2px}.grade-icon{display:none}.grade-select{width:58px;min-width:58px;padding:3px 4px;font-size:11px}.quick-buttons{opacity:1;max-height:28px;overflow:visible;transition:.18s ease}.compact-table .quick-buttons{opacity:0;max-height:0;overflow:hidden}.table-wrap td:hover .quick-buttons,.table-wrap td:focus-within .quick-buttons{opacity:1;max-height:28px}.quick-buttons button{width:23px;height:22px;font-size:10px}.compact-table-note{margin:8px 0 0;color:var(--muted);font-size:13px}.student-readonly .quick-buttons{display:none!important}.student-readonly .grade-row{justify-content:center}.student-readonly .status-value{font-size:12px}
 .homework-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}.homework-card{border:1px solid var(--border);background:rgba(255,255,255,.06);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,.08)}.homework-card h3{margin:0 0 7px;font-size:18px}.homework-meta{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}.homework-badge{border:1px solid var(--border);background:var(--primary-soft);color:var(--primary);border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800}.homework-badge.due-soon{background:#fef3c7;color:#92400e}.homework-badge.overdue{background:#fee2e2;color:#991b1b}.homework-text{white-space:pre-wrap;color:var(--text);margin:8px 0}.homework-links{white-space:pre-wrap;font-size:13px;color:var(--muted)}.homework-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.homework-teacher-form textarea{width:100%;min-height:90px}.homework-toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.homework-toolbar>div{min-width:190px}.student-readonly .homework-teacher-form{display:none!important}
 @media(max-width:800px){.table-wrap table th,.table-wrap table td{min-width:104px}.table-wrap table th.name,.table-wrap table td.name{width:170px!important;min-width:170px!important;max-width:170px!important}.quick-buttons{opacity:1;max-height:26px}.homework-toolbar>div{min-width:0;width:100%}}
 
@@ -58,7 +58,7 @@ body.theme-midnight,body.theme-blue,body.theme-violet,body.theme-night,body.them
 .month-filter-summary{margin:8px 0 10px;color:var(--muted);font-size:13px}.table-month-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-weight:700}.row button,.row input,.row select{margin-bottom:4px}.quick-buttons{opacity:0;transition:.15s ease}.cell-box:hover .quick-buttons{opacity:1}.month-empty{padding:16px;border:1px dashed var(--border);border-radius:12px;color:var(--muted);background:rgba(255,255,255,.05)}
 
 /* --- Финальные улучшения: роли, компактный режим, рейтинг, настройки, инструкция --- */
-.role-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 14px}.role-chip{display:flex!important;align-items:center;justify-content:center;gap:8px;border:1px solid var(--border);border-radius:12px;padding:10px;background:rgba(255,255,255,.55);cursor:pointer;font-weight:800}.role-chip.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}.role-chip input{width:auto;margin:0}.tab-hidden{display:none!important}.app-tabs{max-width:1700px;margin:18px auto 8px;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap}.tab-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:10px 14px;box-shadow:0 3px 12px var(--shadow)}.tab-btn.active{background:var(--primary);color:var(--btn);border-color:var(--primary)}.section-intro{max-width:1700px;margin:0 auto 12px;padding:0 16px;color:var(--muted);font-weight:600}#saveIndicator{position:fixed;right:16px;bottom:16px;z-index:3000;background:var(--card);border:1px solid var(--border);box-shadow:0 10px 30px var(--shadow);border-radius:999px;padding:9px 14px;font-weight:800;color:var(--muted)}#saveIndicator.saving{color:#a16207}#saveIndicator.saved{color:#166534}#saveIndicator.error{color:#b91c1c}.table-mode-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.compact-table .quick-buttons,.compact-table .date-head .small-btn,.compact-table .delete-date,.compact-table .topic-input,.compact-table .table-wrap table th:last-child,.compact-table .table-wrap table td:last-child{display:none!important}.compact-table .cell-box{min-width:92px;gap:3px}.compact-table th,.compact-table td{min-width:96px;padding:5px}.compact-table .grade-select{width:62px;min-width:62px}.settings-card,.help-card{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:14px;padding:14px}.help-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.help-card h3{margin:0 0 6px}.help-card p{margin:0;color:var(--muted)}.rating-table{width:100%;min-width:700px}.rating-table th,.rating-table td{min-width:auto}.rating-badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:28px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-weight:900}.rating-good{background:#dcfce7!important;color:#166534!important}.rating-warn{background:#fee2e2!important;color:#991b1b!important}@media(max-width:800px){.app-tabs{position:sticky;top:0;z-index:900;background:var(--bg);padding-top:8px}.tab-btn{flex:1;min-width:120px}.role-picker{grid-template-columns:1fr}}
+.role-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 14px}.role-chip{display:flex!important;align-items:center;justify-content:center;gap:8px;border:1px solid var(--border);border-radius:12px;padding:10px;background:rgba(255,255,255,.55);cursor:pointer;font-weight:800}.role-chip.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}.role-chip input{width:auto;margin:0}.tab-hidden{display:none!important}.app-tabs{max-width:1700px;margin:18px auto 8px;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap}.tab-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:10px 14px;box-shadow:0 3px 12px var(--shadow)}.tab-btn.active{background:var(--primary);color:var(--btn);border-color:var(--primary)}.section-intro{max-width:1700px;margin:0 auto 12px;padding:0 16px;color:var(--muted);font-weight:600}#saveIndicator{position:fixed;right:16px;bottom:16px;z-index:3000;background:var(--card);border:1px solid var(--border);box-shadow:0 10px 30px var(--shadow);border-radius:999px;padding:9px 14px;font-weight:800;color:var(--muted)}#saveIndicator.saving{color:#a16207}#saveIndicator.saved{color:#166534}#saveIndicator.error{color:#b91c1c}.table-mode-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.compact-table .quick-buttons,.compact-table .date-head .small-btn,.compact-table .delete-date,.compact-table .topic-input,.compact-table .table-wrap table th:last-child,.compact-table .table-wrap table td:last-child{display:none!important}.compact-table .cell-box{min-width:92px;gap:3px}.compact-table th,.compact-table td{min-width:96px;padding:5px}.compact-table .grade-select{width:62px;min-width:62px}.settings-card,.help-card{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:14px;padding:14px}.help-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.help-card h3{margin:0 0 6px}.help-card p{margin:0;color:var(--muted)}.rating-table{width:100%;min-width:700px}.rating-table th,.rating-table td{min-width:auto}.rating-table tr.rating-top-row td{background:linear-gradient(90deg,rgba(250,204,21,.14),transparent)!important}.rating-badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:28px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-weight:900}.rating-badge.top1{background:linear-gradient(135deg,#fde68a,#f59e0b);color:#78350f;box-shadow:0 4px 12px rgba(245,158,11,.25)}.rating-badge.top2{background:linear-gradient(135deg,#e5e7eb,#94a3b8);color:#1f2937}.rating-badge.top3{background:linear-gradient(135deg,#fed7aa,#fb923c);color:#7c2d12}.rating-good{color:#166534!important}.rating-warn{background:#fee2e2!important;color:#991b1b!important}@media(max-width:800px){.app-tabs{position:sticky;top:0;z-index:900;background:var(--bg);padding-top:8px}.tab-btn{flex:1;min-width:120px}.role-picker{grid-template-columns:1fr}}
 
 </style>
 <!-- theme fix: preserve body classes when switching themes -->
@@ -450,14 +450,20 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     setMsg('Проверяю вход...');
 
     try{
+      var selectedRoleEl = document.querySelector('input[name="loginRole"]:checked');
+      var selectedRole = selectedRoleEl ? selectedRoleEl.value : '';
+
       var res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, password: password })
+        body: JSON.stringify({ username: username, password: password, role: selectedRole })
       });
 
       var body = await res.json();
       if(!res.ok) throw new Error(body.message || 'Ошибка входа');
+      if(selectedRole && body.user && body.user.role !== selectedRole){
+        throw new Error(selectedRole === 'teacher' ? 'Это не логин учителя. Выберите роль «Ученик».' : 'Это не логин ученика. Выберите роль «Учитель».');
+      }
 
       currentUser = body.user;
       localStorage.setItem('journalCurrentUser', JSON.stringify(currentUser));
@@ -725,8 +731,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     return [
       {id:'table', label:'Журнал', intro:'Выберите предмет и смотрите оценки своей группы.'},
       {id:'homework', label:'Домашнее задание', intro:'Здесь задания вашей группы по выбранным предметам.'},
-      {id:'analytics', label:'Аналитика', intro:'Итоги по вашей группе.'},
-      {id:'instruction', label:'Инструкция', intro:'Короткая помощь по работе с журналом.'}
+      {id:'analytics', label:'Аналитика', intro:'Итоги по вашей группе.'}
     ];
   }
 
@@ -1183,7 +1188,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   function initTableMode(){
     var select=document.getElementById('tableModeSelect');
     if(!select) return;
-    var saved=localStorage.getItem('journalTableMode') || 'compact';
+    var saved=localStorage.getItem('journalTableMode') || 'detail';
     select.value=saved;
     document.body.classList.toggle('compact-table', saved==='compact');
     select.onchange=function(){
@@ -1218,8 +1223,11 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     rows.sort(function(a,b){return (b.avg-a.avg) || (b.attendance-a.attendance) || a.abs-b.abs || a.name.localeCompare(b.name)});
     var html='<div class="table-wrap"><table class="rating-table"><thead><tr><th>Место</th><th>Ученик</th><th>Средний балл</th><th>Посещаемость</th><th>Пропуски</th><th>Оценок</th></tr></thead><tbody>';
     rows.forEach(function(r,i){
-      var cls = r.avg>=4.5 && r.attendance>=85 ? 'rating-good' : (r.avg && r.avg<3 || r.attendance<75 || r.abs>=3 ? 'rating-warn' : '');
-      html+='<tr class="'+cls+'"><td><span class="rating-badge">'+(i+1)+'</span></td><td>'+escapeHtml(r.name)+'</td><td>'+r.avgText+'</td><td>'+r.attendance+'%</td><td>'+r.abs+'</td><td>'+r.gradeCount+'</td></tr>';
+      var cls = (r.avg && r.avg<3 || r.attendance<75 || r.abs>=3 ? 'rating-warn' : '');
+      var medal = i===0 ? ' 🥇' : (i===1 ? ' 🥈' : (i===2 ? ' 🥉' : ''));
+      var badgeCls = i===0 ? ' top1' : (i===1 ? ' top2' : (i===2 ? ' top3' : ''));
+      var rowCls = (i===0 ? 'rating-top-row ' : '') + cls;
+      html+='<tr class="'+rowCls+'"><td><span class="rating-badge'+badgeCls+'">'+(i+1)+'</span></td><td><b>'+escapeHtml(r.name)+'</b>'+medal+'</td><td>'+r.avgText+'</td><td>'+r.attendance+'%</td><td>'+r.abs+'</td><td>'+r.gradeCount+'</td></tr>';
     });
     html+='</tbody></table></div>';
     box.innerHTML=html;

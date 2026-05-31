@@ -192,7 +192,8 @@ app.post("/api/setup", async (req, res) => {
 
 app.post("/api/login", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, role } = req.body;
+    const requestedRole = role === 'teacher' || role === 'student' ? role : '';
     const loginKey = getLoginKey(req, username);
     const wait = isLoginBlocked(loginKey);
     if (wait > 0) {
@@ -209,6 +210,15 @@ app.post("/api/login", async (req, res) => {
     if (!ok) {
       registerLoginFailure(loginKey);
       return res.status(401).json({ message: "Неверный пароль" });
+    }
+
+    if (requestedRole && user.role !== requestedRole) {
+      registerLoginFailure(loginKey);
+      return res.status(403).json({
+        message: requestedRole === 'teacher'
+          ? "Вы выбрали вход учителя, но этот логин относится к ученику"
+          : "Вы выбрали вход ученика, но этот логин относится к учителю"
+      });
     }
 
     loginAttempts.delete(loginKey);
