@@ -56,6 +56,10 @@ th.name,td.name{width:220px!important;min-width:220px!important;max-width:220px!
 body.theme-midnight,body.theme-blue,body.theme-violet,body.theme-night,body.theme-emerald,body.theme-custom{background-attachment:fixed!important;}
 
 .month-filter-summary{margin:8px 0 10px;color:var(--muted);font-size:13px}.table-month-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-weight:700}.row button,.row input,.row select{margin-bottom:4px}.quick-buttons{opacity:0;transition:.15s ease}.cell-box:hover .quick-buttons{opacity:1}.month-empty{padding:16px;border:1px dashed var(--border);border-radius:12px;color:var(--muted);background:rgba(255,255,255,.05)}
+
+/* --- Финальные улучшения: роли, компактный режим, рейтинг, настройки, инструкция --- */
+.role-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 14px}.role-chip{display:flex!important;align-items:center;justify-content:center;gap:8px;border:1px solid var(--border);border-radius:12px;padding:10px;background:rgba(255,255,255,.55);cursor:pointer;font-weight:800}.role-chip.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}.role-chip input{width:auto;margin:0}.tab-hidden{display:none!important}.app-tabs{max-width:1700px;margin:18px auto 8px;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap}.tab-btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:10px 14px;box-shadow:0 3px 12px var(--shadow)}.tab-btn.active{background:var(--primary);color:var(--btn);border-color:var(--primary)}.section-intro{max-width:1700px;margin:0 auto 12px;padding:0 16px;color:var(--muted);font-weight:600}#saveIndicator{position:fixed;right:16px;bottom:16px;z-index:3000;background:var(--card);border:1px solid var(--border);box-shadow:0 10px 30px var(--shadow);border-radius:999px;padding:9px 14px;font-weight:800;color:var(--muted)}#saveIndicator.saving{color:#a16207}#saveIndicator.saved{color:#166534}#saveIndicator.error{color:#b91c1c}.table-mode-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.compact-table .quick-buttons,.compact-table .date-head .small-btn,.compact-table .delete-date,.compact-table .topic-input,.compact-table .table-wrap table th:last-child,.compact-table .table-wrap table td:last-child{display:none!important}.compact-table .cell-box{min-width:92px;gap:3px}.compact-table th,.compact-table td{min-width:96px;padding:5px}.compact-table .grade-select{width:62px;min-width:62px}.settings-card,.help-card{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:14px;padding:14px}.help-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.help-card h3{margin:0 0 6px}.help-card p{margin:0;color:var(--muted)}.rating-table{width:100%;min-width:700px}.rating-table th,.rating-table td{min-width:auto}.rating-badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:28px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-weight:900}.rating-good{background:#dcfce7!important;color:#166534!important}.rating-warn{background:#fee2e2!important;color:#991b1b!important}@media(max-width:800px){.app-tabs{position:sticky;top:0;z-index:900;background:var(--bg);padding-top:8px}.tab-btn{flex:1;min-width:120px}.role-picker{grid-template-columns:1fr}}
+
 </style>
 <!-- theme fix: preserve body classes when switching themes -->
 </head>
@@ -64,6 +68,10 @@ body.theme-midnight,body.theme-blue,body.theme-violet,body.theme-night,body.them
   <div class="auth-card">
     <h2>Вход в журнал</h2>
     <p>Войдите как учитель или ученик.</p>
+    <div class="role-picker" aria-label="Выбор роли">
+      <label class="role-chip active"><input type="radio" name="loginRole" value="teacher" checked> Учитель</label>
+      <label class="role-chip"><input type="radio" name="loginRole" value="student"> Ученик</label>
+    </div>
     <label for="authUsername">Логин</label>
     <input id="authUsername" type="text" placeholder="Учитель или логин группы" autocomplete="username">
     <label for="authPassword">Пароль</label>
@@ -87,7 +95,7 @@ body.theme-midnight,body.theme-blue,body.theme-violet,body.theme-night,body.them
 <section class="panel" id="groupAccessPanel"><h2 class="panel-title" data-collapse="groupAccessPanel"><span>3. Доступ для групп</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="groupLoginName">Логин группы</label><input id="groupLoginName" type="text" maxlength="80" placeholder="Например: group10b"></div><div><label for="groupLoginPassword">Пароль группы</label><input id="groupLoginPassword" type="text" maxlength="80" placeholder="Например: 1234"></div><div><label for="groupAccessSelect">Выбрать существующую группу</label><select id="groupAccessSelect"></select></div><div><label for="groupAccessManual">Или написать группу вручную</label><input id="groupAccessManual" type="text" maxlength="80" placeholder="Например: 10-Б"></div><button id="saveGroupAccessBtn" class="green">Создать / обновить доступ</button><button id="refreshGroupAccessBtn" class="secondary">Обновить список</button></div><p class="hint">Один логин выдаётся всей группе сразу для всех предметов. Можно выбрать группу из списка или написать её вручную. Если потом добавить группу с таким же названием в Английский, Информатику или Математику, этот же логин увидит её во всех этих предметах.</p><div id="groupAccessList" class="empty">Список доступов появится здесь.</div></div></section>
 <section class="panel" id="studentsPanel"><h2 class="panel-title" data-collapse="studentsPanel"><span>3. Студенты и занятия</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="studentName">ФИО студента</label><input id="studentName" type="text" maxlength="120" placeholder="Иванов Иван"></div><button id="addStudentBtn">Добавить студента</button><div><label for="newDate">Дата занятия</label><input id="newDate" type="date"></div><button class="green" id="addDateBtn">Добавить дату</button><button class="secondary" id="addTodayBtn">Добавить сегодня</button><div><label for="dateFrom">Период с</label><input id="dateFrom" type="date"></div><div><label for="dateTo">Период по</label><input id="dateTo" type="date"></div><button class="green" id="addPeriodBtn">Добавить период</button><button class="secondary" id="exportBtn">Скачать Excel</button></div><p class="hint">Если ученик был — поставьте оценку или оставьте пусто. Если не был — Н, У или Б.</p><div class="legend"><span class="normal">— был / оценка</span><span class="absent">Н — прогул</span><span class="excused">У — уважительная</span><span class="sick">Б — больничный</span></div></div></section>
 <section class="panel" id="toolsPanel"><h2 class="panel-title" data-collapse="toolsPanel"><span>4. Инструменты</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="filterSelect">Фильтр таблицы</label><select id="filterSelect"><option value="all">Все ученики</option><option value="absences">Есть пропуски</option><option value="bad">Есть двойки</option><option value="nogrades">Без оценок</option><option value="warnings">Предупреждения</option></select></div><button class="secondary" id="toggleWarningsBtn">Выделить проблемных</button><button class="secondary" id="backupBtn">Сохранить резервную копию</button><div><label for="restoreInput">Загрузить копию</label><input id="restoreInput" type="file" accept="application/json"></div><div><label for="scaleSelect">Система оценок</label><select id="scaleSelect"><option value="2-5">2–5</option><option value="1-10">1–10</option><option value="pass">Зачёт / незачёт</option></select></div></div></div></section>
-<section class="panel" id="tablePanel"><h2 class="panel-title" data-collapse="tablePanel"><span>5. Таблица</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="monthFilter">Месяц таблицы</label><select id="monthFilter"><option value="all">Все месяцы</option></select></div><div><label for="searchDate">Найти дату</label><input id="searchDate" type="date"></div><button class="secondary" id="findDateBtn">Перейти к дате</button><div><label for="searchTopic">Найти тему</label><input id="searchTopic" type="text" maxlength="80" placeholder="Например: дроби"></div><button class="secondary" id="findTopicBtn">Найти тему</button><button class="secondary" id="clearSearchBtn">Сбросить поиск</button><button class="secondary" id="toggleWarningsBtnTable" type="button">Выделить проблемных</button><button class="secondary" id="notesBtn">Заметки ученика</button></div><p class="hint">У каждой даты можно написать тему. Нажмите Н/У/Б или выберите оценку.</p><p class="compact-table-note">Таблица стала компактнее: кнопки Н/У/Б появляются при наведении на ячейку, чтобы журнал не был перегружен.</p><div class="table-compact-help">Кнопки Н/У/Б скрыты, чтобы таблица была чище. Наведите мышку на ячейку, чтобы быстро поставить отметку.</div><div id="tableArea"></div></div></section>
+<section class="panel" id="tablePanel"><h2 class="panel-title" data-collapse="tablePanel"><span>5. Таблица</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="monthFilter">Месяц таблицы</label><select id="monthFilter"><option value="all">Все месяцы</option></select></div><div><label for="tableModeSelect">Режим таблицы</label><select id="tableModeSelect"><option value="compact">Компактно</option><option value="detail">Подробно</option></select></div><div><label for="searchDate">Найти дату</label><input id="searchDate" type="date"></div><button class="secondary" id="findDateBtn">Перейти к дате</button><div><label for="searchTopic">Найти тему</label><input id="searchTopic" type="text" maxlength="80" placeholder="Например: дроби"></div><button class="secondary" id="findTopicBtn">Найти тему</button><button class="secondary" id="clearSearchBtn">Сбросить поиск</button><button class="secondary" id="toggleWarningsBtnTable" type="button">Выделить проблемных</button><button class="secondary" id="notesBtn">Заметки ученика</button></div><p class="hint">У каждой даты можно написать тему. Нажмите Н/У/Б или выберите оценку.</p><p class="compact-table-note">Таблица стала компактнее: кнопки Н/У/Б появляются при наведении на ячейку, чтобы журнал не был перегружен.</p><div class="table-compact-help">Кнопки Н/У/Б скрыты, чтобы таблица была чище. Наведите мышку на ячейку, чтобы быстро поставить отметку.</div><div id="tableArea"></div></div></section>
 <section class="panel" id="analyticsPanel"><h2 class="panel-title" data-collapse="analyticsPanel"><span>6. Аналитика</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="analyticsMode">Считать по</label><select id="analyticsMode"><option value="subject">Все группы предмета</option><option value="group">Выбранная группа</option><option value="student">Один ученик</option></select></div><div><label for="analyticsStudent">Ученик</label><select id="analyticsStudent"></select></div><div><label for="analyticsView">Показать</label><select id="analyticsView"><option value="all">Оценки и посещаемость</option><option value="attendance">Только посещаемость</option><option value="grades">Только оценки</option></select></div><div><label for="periodFrom">Итог с</label><input id="periodFrom" type="date"></div><div><label for="periodTo">Итог по</label><input id="periodTo" type="date"></div><button class="secondary" id="refreshAnalyticsBtn">Обновить аналитику</button><button class="secondary" id="summaryBtn">Итоговая ведомость</button></div><div id="analyticsArea"></div><div id="summaryArea"></div></div></section>
 
 
@@ -114,6 +122,9 @@ body.theme-midnight,body.theme-blue,body.theme-violet,body.theme-night,body.them
 </div></section>
 
 <section class="panel" id="historyPanel"><h2 class="panel-title" data-collapse="historyPanel"><span>История изменений</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><button id="refreshHistoryBtn" class="secondary" type="button">Обновить историю</button></div><p class="hint">Здесь отображаются последние действия учителя: изменения журнала, доступов и резервных копий.</p><div id="historyList" class="empty">История пока не загружена.</div></div></section>
+<section class="panel" id="ratingPanel"><h2 class="panel-title" data-collapse="ratingPanel"><span>Рейтинг группы</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><p class="hint">Рейтинг строится по выбранному предмету и группе: средний балл, посещаемость и количество пропусков.</p><div class="row"><button class="secondary" id="refreshRatingBtn" type="button">Обновить рейтинг</button></div><div id="ratingArea" class="empty">Выберите предмет и группу.</div></div></section>
+<section class="panel" id="settingsPanel"><h2 class="panel-title" data-collapse="settingsPanel"><span>Настройки</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="settings-card"><h3>Смена пароля учителя</h3><p class="hint">Пароль изменится в базе данных. После смены войдите заново с новым паролем.</p><div class="row"><div><label for="oldTeacherPassword">Старый пароль</label><input id="oldTeacherPassword" type="password" autocomplete="current-password"></div><div><label for="newTeacherPassword">Новый пароль</label><input id="newTeacherPassword" type="password" autocomplete="new-password"></div><div><label for="repeatTeacherPassword">Повтор нового пароля</label><input id="repeatTeacherPassword" type="password" autocomplete="new-password"></div><button id="changeTeacherPasswordBtn" class="green" type="button">Изменить пароль</button></div><p id="settingsMessage" class="auth-msg"></p></div></div></section>
+<section class="panel" id="instructionPanel"><h2 class="panel-title" data-collapse="instructionPanel"><span>Инструкция</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="help-grid"><div class="help-card"><h3>1. Начало работы</h3><p>Создайте предмет, затем группу и добавьте учеников. После этого добавьте даты занятий.</p></div><div class="help-card"><h3>2. Заполнение журнала</h3><p>В таблице выбирайте оценку или отмечайте отсутствие: Н — прогул, У — уважительная причина, Б — больничный.</p></div><div class="help-card"><h3>3. Месяцы</h3><p>Если дат много, выберите нужный месяц над таблицей, чтобы не листать весь год.</p></div><div class="help-card"><h3>4. Домашнее задание</h3><p>Учитель добавляет ДЗ для предмета и группы. Ученики видят только задания своей группы.</p></div><div class="help-card"><h3>5. Доступы</h3><p>Один логин можно выдать всей группе. Он откроет эту группу во всех предметах с таким же названием.</p></div><div class="help-card"><h3>6. Безопасность</h3><p>После 5 неверных попыток вход временно блокируется на 1 минуту.</p></div></div></div></section>
 </main>
 <div id="infoModal" class="modal-backdrop"><div class="modal"><h2>Инструкция</h2><ol><li>Создайте предмет и группу.</li><li>Добавьте студентов и даты. Можно добавить период дат.</li><li>В каждой дате напишите тему занятия.</li><li>Если ученик был — поставьте оценку или оставьте пусто.</li><li>Если отсутствовал — нажмите Н, У или Б. Кнопка × очищает отметку.</li><li>Заголовки блоков сворачивают разделы, чтобы они не мешали.</li><li>Фильтр показывает учеников с пропусками, двойками, без оценок или предупреждениями.</li><li>Резервная копия сохраняет все данные в JSON.</li><li>Аналитика считает средний балл и посещаемость по ученику, группе или всем группам предмета.</li><li>На телефоне таблицу можно листать горизонтальным свайпом. Колонка действий скрывается, чтобы таблица не была слишком широкой.</li><li>В теме «Свой градиент» можно выбрать три цвета сверху справа и нажать OK.</li></ol><button id="closeInfoBtn" type="button">Закрыть</button></div></div>
 <div id="notesModal" class="modal-backdrop"><div class="modal"><h2>Заметки ученика</h2><div class="row"><div><label for="notesStudent">Ученик</label><select id="notesStudent"></select></div></div><textarea id="notesText" class="notes-area" maxlength="2000" placeholder="Напишите заметку..."></textarea><div class="row" style="margin-top:12px"><button id="saveNotesBtn">Сохранить заметку</button><button class="secondary" id="closeNotesBtn">Закрыть</button></div></div></div>
@@ -663,7 +674,10 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     access: ['groupAccessPanel'],
     tools: ['toolsPanel'],
     homework: ['homeworkPanel'],
-    history: ['historyPanel']
+    history: ['historyPanel'],
+    rating: ['ratingPanel'],
+    settings: ['settingsPanel'],
+    instruction: ['instructionPanel']
   };
   var activeTab = localStorage.getItem('journalActiveTab') || 'journal';
 
@@ -689,23 +703,30 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     setTitle('toolsPanel','Инструменты');
     setTitle('tablePanel','Таблица');
     setTitle('analyticsPanel','Аналитика');
+    setTitle('ratingPanel','Рейтинг группы');
+    setTitle('settingsPanel','Настройки');
+    setTitle('instructionPanel','Инструкция');
   }
 
   function getTabs(){
     if(isTeacher()){
       return [
         {id:'journal', label:'Журнал', intro:'Основная работа: предметы, группы, ученики, даты и таблица.'},
-        {id:'analytics', label:'Аналитика', intro:'Итоги по группе, ученику или предмету.'},
-        {id:'access', label:'Доступы', intro:'Логины и пароли для групп. Один логин открывает выбранную группу во всех предметах.'},
         {id:'homework', label:'Домашнее задание', intro:'Добавляйте задания для конкретных групп, а ученики будут видеть их по предметам.'},
+        {id:'analytics', label:'Аналитика', intro:'Итоги по группе, ученику или предмету.'},
+        {id:'rating', label:'Рейтинг', intro:'Рейтинг выбранной группы по оценкам и посещаемости.'},
+        {id:'access', label:'Доступы', intro:'Логины и пароли для групп. Один логин открывает выбранную группу во всех предметах.'},
         {id:'tools', label:'Инструменты', intro:'Фильтры, резервные копии, восстановление и настройки оценок.'},
-        {id:'history', label:'История', intro:'Последние изменения и действия в журнале.'}
+        {id:'history', label:'История', intro:'Последние изменения и действия в журнале.'},
+        {id:'settings', label:'Настройки', intro:'Смена пароля учителя и параметры журнала.'},
+        {id:'instruction', label:'Инструкция', intro:'Короткая помощь по работе с журналом.'}
       ];
     }
     return [
       {id:'table', label:'Журнал', intro:'Выберите предмет и смотрите оценки своей группы.'},
       {id:'homework', label:'Домашнее задание', intro:'Здесь задания вашей группы по выбранным предметам.'},
-      {id:'analytics', label:'Аналитика', intro:'Итоги по вашей группе.'}
+      {id:'analytics', label:'Аналитика', intro:'Итоги по вашей группе.'},
+      {id:'instruction', label:'Инструкция', intro:'Короткая помощь по работе с журналом.'}
     ];
   }
 
@@ -734,6 +755,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     renderTabs();
     if(id==='history' && typeof window.loadHistoryList==='function') window.loadHistoryList();
     if(id==='homework' && typeof window.loadHomeworkList==='function') window.loadHomeworkList();
+    if(id==='rating' && typeof window.renderGroupRating==='function') window.renderGroupRating();
     window.scrollTo({top:0, behavior:'smooth'});
   }
 
@@ -1135,6 +1157,116 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   var oldRG=window.renderGroups; if(typeof oldRG==='function'){window.renderGroups=function(){oldRG.apply(this,arguments); setTimeout(fillSelects,0)}; try{renderGroups=window.renderGroups}catch(e){}}
   window.addEventListener('load',function(){setTimeout(function(){bind(); load();},700)});
   setTimeout(function(){bind();},1200);
+})();
+</script>
+
+
+<script>
+/* --- Финальный пакет: компактный режим, рейтинг, настройки пароля, роль входа --- */
+(function(){
+  function savedUser(){try{return JSON.parse(localStorage.getItem('journalCurrentUser')||'null')}catch(e){return null}}
+  function safeJson(res){return res.text().then(function(t){try{return JSON.parse(t)}catch(e){throw new Error('Сервер вернул не JSON')}})}
+
+  function initRolePicker(){
+    document.querySelectorAll('.role-chip').forEach(function(chip){
+      chip.onclick=function(){
+        document.querySelectorAll('.role-chip').forEach(function(x){x.classList.remove('active')});
+        chip.classList.add('active');
+        var input=chip.querySelector('input'); if(input) input.checked=true;
+        var username=document.getElementById('authUsername');
+        if(username && input && input.value==='teacher' && !username.value) username.placeholder='Учитель';
+        if(username && input && input.value==='student' && !username.value) username.placeholder='Логин группы';
+      };
+    });
+  }
+
+  function initTableMode(){
+    var select=document.getElementById('tableModeSelect');
+    if(!select) return;
+    var saved=localStorage.getItem('journalTableMode') || 'compact';
+    select.value=saved;
+    document.body.classList.toggle('compact-table', saved==='compact');
+    select.onchange=function(){
+      localStorage.setItem('journalTableMode', select.value);
+      document.body.classList.toggle('compact-table', select.value==='compact');
+      if(typeof renderTable==='function') renderTable();
+    };
+  }
+
+  function num(v){var n=parseFloat(String(v||'').replace(',','.'));return isNaN(n)?null:n}
+  function localStats(group, sid){
+    var total=0, present=0, abs=0, gradeSum=0, gradeCount=0;
+    (group.dates||[]).forEach(function(date){
+      var status=group.attendance && group.attendance[date] ? (group.attendance[date][sid]||'') : '';
+      if(status==='absent') abs++;
+      if(status) total++; else {total++; present++;}
+      var gr=group.grades && group.grades[date] ? (group.grades[date][sid]||'') : '';
+      var n = gr==='зач'?5:(gr==='незач'?2:num(gr));
+      if(n!==null){gradeSum+=n; gradeCount++;}
+    });
+    var avg=gradeCount?gradeSum/gradeCount:0;
+    var attendance=total?Math.round(present/total*100):0;
+    return {avg:avg, avgText:gradeCount?avg.toFixed(2):'—', attendance:attendance, abs:abs, gradeCount:gradeCount};
+  }
+
+  window.renderGroupRating=function(){
+    var box=document.getElementById('ratingArea'); if(!box) return;
+    if(typeof getCurrentGroup!=='function'){box.innerHTML='Рейтинг пока недоступен.';return;}
+    var g=getCurrentGroup();
+    if(!g || !g.students || !g.students.length){box.innerHTML='<div class="empty">Выберите группу и добавьте учеников.</div>';return;}
+    var rows=g.students.map(function(st){var a=localStats(g, st.id);return {name:st.name, avg:a.avg, avgText:a.avgText, attendance:a.attendance, abs:a.abs, gradeCount:a.gradeCount};});
+    rows.sort(function(a,b){return (b.avg-a.avg) || (b.attendance-a.attendance) || a.abs-b.abs || a.name.localeCompare(b.name)});
+    var html='<div class="table-wrap"><table class="rating-table"><thead><tr><th>Место</th><th>Ученик</th><th>Средний балл</th><th>Посещаемость</th><th>Пропуски</th><th>Оценок</th></tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      var cls = r.avg>=4.5 && r.attendance>=85 ? 'rating-good' : (r.avg && r.avg<3 || r.attendance<75 || r.abs>=3 ? 'rating-warn' : '');
+      html+='<tr class="'+cls+'"><td><span class="rating-badge">'+(i+1)+'</span></td><td>'+escapeHtml(r.name)+'</td><td>'+r.avgText+'</td><td>'+r.attendance+'%</td><td>'+r.abs+'</td><td>'+r.gradeCount+'</td></tr>';
+    });
+    html+='</tbody></table></div>';
+    box.innerHTML=html;
+  };
+
+  function initRating(){
+    var b=document.getElementById('refreshRatingBtn'); if(b) b.onclick=window.renderGroupRating;
+    var oldRenderTable=window.renderTable;
+    if(typeof oldRenderTable==='function' && !window.__ratingWrapped){
+      window.__ratingWrapped=true;
+      window.renderTable=function(){oldRenderTable.apply(this, arguments); if(document.getElementById('ratingPanel') && !document.getElementById('ratingPanel').classList.contains('tab-hidden')) setTimeout(window.renderGroupRating,0);};
+      try{renderTable=window.renderTable}catch(e){}
+    }
+  }
+
+  function initTeacherPassword(){
+    var btn=document.getElementById('changeTeacherPasswordBtn'); if(!btn) return;
+    btn.onclick=function(){
+      var msg=document.getElementById('settingsMessage');
+      var u=savedUser();
+      var oldP=document.getElementById('oldTeacherPassword').value;
+      var newP=document.getElementById('newTeacherPassword').value;
+      var rep=document.getElementById('repeatTeacherPassword').value;
+      if(!u || u.role!=='teacher'){ if(msg) msg.textContent='Только учитель может менять пароль'; return; }
+      if(!oldP || !newP || !rep){ if(msg) msg.textContent='Заполните все поля'; return; }
+      if(newP!==rep){ if(msg) msg.textContent='Новые пароли не совпадают'; return; }
+      if(newP.length<6){ if(msg) msg.textContent='Минимум 6 символов'; return; }
+      if(msg){msg.textContent='Сохраняю...'; msg.className='auth-msg';}
+      fetch('/api/teacher-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u,oldPassword:oldP,newPassword:newP})})
+        .then(function(res){return safeJson(res).then(function(body){if(!res.ok) throw new Error(body.message||'Ошибка'); return body;});})
+        .then(function(body){
+          if(msg){msg.textContent=body.message||'Пароль изменён'; msg.className='auth-msg success';}
+          document.getElementById('oldTeacherPassword').value='';
+          document.getElementById('newTeacherPassword').value='';
+          document.getElementById('repeatTeacherPassword').value='';
+          alert('Пароль изменён. При следующем входе используйте новый пароль.');
+        })
+        .catch(function(err){if(msg){msg.textContent='Ошибка: '+err.message; msg.className='auth-msg error';}});
+    };
+  }
+
+  window.addEventListener('load', function(){
+    initRolePicker();
+    initTableMode();
+    initRating();
+    initTeacherPassword();
+  });
 })();
 </script>
 

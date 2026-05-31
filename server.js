@@ -75,24 +75,53 @@ async function addActivity(user, action, details) {
 
 const TEACHER_USERNAME = process.env.TEACHER_LOGIN || "Учитель";
 const TEACHER_PASSWORD = process.env.TEACHER_PASSWORD;
+const loginAttempts = new Map();
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_BLOCK_MS = 60 * 1000;
+
+function getLoginKey(req, username) {
+  return String(username || "").trim().toLowerCase() + "|" + (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "local");
+}
+
+function isLoginBlocked(key) {
+  const item = loginAttempts.get(key);
+  if (!item) return 0;
+  if (item.blockUntil && item.blockUntil > Date.now()) return Math.ceil((item.blockUntil - Date.now()) / 1000);
+  if (item.blockUntil && item.blockUntil <= Date.now()) loginAttempts.delete(key);
+  return 0;
+}
+
+function registerLoginFailure(key) {
+  const item = loginAttempts.get(key) || { count: 0, blockUntil: 0 };
+  item.count += 1;
+  if (item.count >= MAX_LOGIN_ATTEMPTS) {
+    item.blockUntil = Date.now() + LOGIN_BLOCK_MS;
+    item.count = 0;
+  }
+  loginAttempts.set(key, item);
+}
+
 
 async function ensureTeacherAccount() {
   if (!TEACHER_PASSWORD) {
     throw new Error("TEACHER_PASSWORD не задан в переменных окружения");
   }
-  const passwordHash = await bcrypt.hash(TEACHER_PASSWORD, 10);
 
-  await User.findOneAndUpdate(
-    { username: TEACHER_USERNAME },
-    {
+  const existing = await User.findOne({ username: TEACHER_USERNAME, role: "teacher" });
+
+  if (!existing) {
+    await User.create({
       username: TEACHER_USERNAME,
-      passwordHash,
+      passwordHash: await bcrypt.hash(TEACHER_PASSWORD, 10),
       role: "teacher",
       groupName: "",
       fullName: "Учитель"
-    },
-    { upsert: true, new: true }
-  );
+    });
+  } else {
+    existing.groupName = "";
+    existing.fullName = "Учитель";
+    await existing.save();
+  }
 
   // Старый демо-логин больше не нужен. Если он есть, удаляем его.
   await User.deleteOne({ username: "teacher", role: "teacher" });
@@ -164,11 +193,25 @@ app.post("/api/setup", async (req, res) => {
 app.post("/api/login", async (req, res) => {
   try {
     const { username, password } = req.body;
+    const loginKey = getLoginKey(req, username);
+    const wait = isLoginBlocked(loginKey);
+    if (wait > 0) {
+      return res.status(429).json({ message: `Слишком много попыток входа. Попробуйте через ${wait} сек.` });
+    }
+
     const user = await User.findOne({ username });
-    if (!user) return res.status(401).json({ message: "Пользователь не найден" });
+    if (!user) {
+      registerLoginFailure(loginKey);
+      return res.status(401).json({ message: "Пользователь не найден" });
+    }
 
     const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ message: "Неверный пароль" });
+    if (!ok) {
+      registerLoginFailure(loginKey);
+      return res.status(401).json({ message: "Неверный пароль" });
+    }
+
+    loginAttempts.delete(loginKey);
 
     res.json({
       message: "Вход выполнен",
@@ -181,6 +224,38 @@ app.post("/api/login", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Ошибка входа", error: error.message });
+  }
+});
+
+app.post("/api/teacher-password", async (req, res) => {
+  try {
+    const { user, oldPassword, newPassword } = req.body || {};
+
+    if (!user || user.role !== "teacher") {
+      return res.status(403).json({ message: "Менять пароль может только учитель" });
+    }
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: "Введите старый и новый пароль" });
+    }
+
+    if (String(newPassword).length < 6) {
+      return res.status(400).json({ message: "Новый пароль должен быть минимум 6 символов" });
+    }
+
+    const teacher = await User.findOne({ username: user.username, role: "teacher" });
+    if (!teacher) return res.status(404).json({ message: "Учитель не найден" });
+
+    const ok = await bcrypt.compare(String(oldPassword), teacher.passwordHash);
+    if (!ok) return res.status(401).json({ message: "Старый пароль неверный" });
+
+    teacher.passwordHash = await bcrypt.hash(String(newPassword), 10);
+    await teacher.save();
+    await addActivity(user, "Изменён пароль учителя", "Пароль учителя изменён через настройки");
+
+    res.json({ message: "Пароль учителя изменён" });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка смены пароля", error: error.message });
   }
 });
 
