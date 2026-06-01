@@ -70,6 +70,9 @@ body.theme-midnight,body.theme-blue,body.theme-violet,body.theme-night,body.them
 .month-empty{padding:14px;border:1px dashed var(--border);border-radius:12px;color:var(--muted);background:rgba(255,255,255,.06);margin:10px 0}
 .table-performance-note{margin:8px 0 0;color:var(--muted);font-size:13px}
 
+
+/* Excel import */
+#importExcelBtn,#downloadImportTemplateBtn{white-space:nowrap}.import-ok{border-left:4px solid #198754}.import-warn{border-left:4px solid #f59e0b}.import-error{border-left:4px solid #dc3545}.import-mini{font-size:13px;color:var(--muted);margin-top:6px}
 </style>
 <!-- theme fix: preserve body classes when switching themes -->
 </head>
@@ -104,7 +107,7 @@ body.theme-midnight,body.theme-blue,body.theme-violet,body.theme-night,body.them
 <section class="panel" id="groupPanel"><h2 class="panel-title" data-collapse="groupPanel"><span>2. Группы выбранного предмета</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="groupName">Новая группа</label><input id="groupName" type="text" maxlength="80" placeholder="Например: 10-А"></div><button id="addGroupBtn">Добавить группу</button><div><label for="groupSelect">Выбрать группу</label><select id="groupSelect"></select></div><button class="danger" id="deleteGroupBtn">Удалить группу</button></div></div></section>
 <section class="panel" id="groupAccessPanel"><h2 class="panel-title" data-collapse="groupAccessPanel"><span>3. Доступ для групп</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="groupLoginName">Логин группы</label><input id="groupLoginName" type="text" maxlength="80" placeholder="Например: group10b"></div><div><label for="groupLoginPassword">Пароль группы</label><input id="groupLoginPassword" type="text" maxlength="80" placeholder="Например: 1234"></div><div><label for="groupAccessSelect">Выбрать существующую группу</label><select id="groupAccessSelect"></select></div><div><label for="groupAccessManual">Или написать группу вручную</label><input id="groupAccessManual" type="text" maxlength="80" placeholder="Например: 10-Б"></div><button id="saveGroupAccessBtn" class="green">Создать / обновить доступ</button><button id="refreshGroupAccessBtn" class="secondary">Обновить список</button></div><p class="hint">Один логин выдаётся всей группе сразу для всех предметов. Можно выбрать группу из списка или написать её вручную. Если потом добавить группу с таким же названием в Английский, Информатику или Математику, этот же логин увидит её во всех этих предметах.</p><div id="groupAccessList" class="empty">Список доступов появится здесь.</div></div></section>
 <section class="panel" id="studentsPanel"><h2 class="panel-title" data-collapse="studentsPanel"><span>3. Студенты и занятия</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="studentName">ФИО студента</label><input id="studentName" type="text" maxlength="120" placeholder="Иванов Иван"></div><button id="addStudentBtn">Добавить студента</button><div><label for="newDate">Дата занятия</label><input id="newDate" type="date"></div><button class="green" id="addDateBtn">Добавить дату</button><button class="secondary" id="addTodayBtn">Добавить сегодня</button><div><label for="dateFrom">Период с</label><input id="dateFrom" type="date"></div><div><label for="dateTo">Период по</label><input id="dateTo" type="date"></div><button class="green" id="addPeriodBtn">Добавить период</button><button class="secondary" id="exportBtn">Скачать Excel</button></div><p class="hint">Если ученик был — поставьте оценку или оставьте пусто. Если не был — Н, У или Б.</p><div class="legend"><span class="normal">— был / оценка</span><span class="absent">Н — прогул</span><span class="excused">У — уважительная</span><span class="sick">Б — больничный</span></div></div></section>
-<section class="panel" id="toolsPanel"><h2 class="panel-title" data-collapse="toolsPanel"><span>4. Инструменты</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="filterSelect">Фильтр таблицы</label><select id="filterSelect"><option value="all">Все ученики</option><option value="absences">Есть пропуски</option><option value="bad">Есть двойки</option><option value="nogrades">Без оценок</option><option value="warnings">Предупреждения</option></select></div><button class="secondary" id="toggleWarningsBtn">Выделить проблемных</button><button class="secondary" id="backupBtn">Сохранить резервную копию</button><div><label for="restoreInput">Загрузить копию</label><input id="restoreInput" type="file" accept="application/json"></div><div><label for="scaleSelect">Система оценок</label><select id="scaleSelect"><option value="2-5">2–5</option><option value="1-10">1–10</option><option value="pass">Зачёт / незачёт</option></select></div></div></div></section>
+<section class="panel" id="toolsPanel"><h2 class="panel-title" data-collapse="toolsPanel"><span>4. Инструменты</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="filterSelect">Фильтр таблицы</label><select id="filterSelect"><option value="all">Все ученики</option><option value="absences">Есть пропуски</option><option value="bad">Есть двойки</option><option value="nogrades">Без оценок</option><option value="warnings">Предупреждения</option></select></div><button class="secondary" id="toggleWarningsBtn">Выделить проблемных</button><button class="secondary" id="backupBtn">Сохранить резервную копию</button><div><label for="restoreInput">Загрузить копию</label><input id="restoreInput" type="file" accept="application/json"></div><div><label for="scaleSelect">Система оценок</label><select id="scaleSelect"><option value="2-5">2–5</option><option value="1-10">1–10</option><option value="pass">Зачёт / незачёт</option></select></div><div><label for="excelImportInput">Импорт из Excel</label><input id="excelImportInput" type="file" accept=".xlsx,.xls,.csv"></div><button class="green" id="importExcelBtn" type="button">Импортировать</button><button class="secondary" id="downloadImportTemplateBtn" type="button">Скачать шаблон</button></div><p class="hint">Импорт поддерживает .xlsx, .xls и .csv. Столбцы: ФИО, Предмет, Группа, Дата, Оценка, Статус, Тема. Если Предмет или Группа пустые — используются выбранные сверху.</p><div id="excelImportResult" class="empty" style="display:none"></div></div></section>
 <section class="panel" id="tablePanel"><h2 class="panel-title" data-collapse="tablePanel"><span>5. Таблица</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="monthFilter">Месяц таблицы</label><select id="monthFilter"><option value="all">Все месяцы</option></select></div><div><label for="tableModeSelect">Режим таблицы</label><select id="tableModeSelect"><option value="compact">Компактно</option><option value="detail">Подробно</option></select></div><div><label for="searchDate">Найти дату</label><input id="searchDate" type="date"></div><button class="secondary" id="findDateBtn">Перейти к дате</button><div><label for="searchTopic">Найти тему</label><input id="searchTopic" type="text" maxlength="80" placeholder="Например: дроби"></div><button class="secondary" id="findTopicBtn">Найти тему</button><button class="secondary" id="clearSearchBtn">Сбросить поиск</button><button class="secondary" id="toggleWarningsBtnTable" type="button">Выделить проблемных</button><button class="secondary" id="notesBtn">Заметки ученика</button></div><p class="hint">У каждой даты можно написать тему. Нажмите Н/У/Б или выберите оценку.</p><p class="compact-table-note">Таблица стала компактнее: кнопки Н/У/Б появляются при наведении на ячейку, чтобы журнал не был перегружен.</p><div class="table-compact-help">Кнопки Н/У/Б скрыты, чтобы таблица была чище. Наведите мышку на ячейку, чтобы быстро поставить отметку.</div><div id="tableArea"></div></div></section>
 <section class="panel" id="analyticsPanel"><h2 class="panel-title" data-collapse="analyticsPanel"><span>6. Аналитика</span><span class="collapse-mark">свернуть / открыть</span></h2><div class="panel-body"><div class="row"><div><label for="analyticsMode">Считать по</label><select id="analyticsMode"><option value="subject">Все группы предмета</option><option value="group">Выбранная группа</option><option value="student">Один ученик</option></select></div><div><label for="analyticsStudent">Ученик</label><select id="analyticsStudent"></select></div><div><label for="analyticsView">Показать</label><select id="analyticsView"><option value="all">Оценки и посещаемость</option><option value="attendance">Только посещаемость</option><option value="grades">Только оценки</option></select></div><div><label for="periodFrom">Итог с</label><input id="periodFrom" type="date"></div><div><label for="periodTo">Итог по</label><input id="periodTo" type="date"></div><button class="secondary" id="refreshAnalyticsBtn">Обновить аналитику</button><button class="secondary" id="summaryBtn">Итоговая ведомость</button></div><div id="analyticsArea"></div><div id="summaryArea"></div></div></section>
 
@@ -138,6 +141,7 @@ body.theme-midnight,body.theme-blue,body.theme-violet,body.theme-night,body.them
 </main>
 <div id="infoModal" class="modal-backdrop"><div class="modal"><h2>Инструкция</h2><ol><li>Создайте предмет и группу.</li><li>Добавьте студентов и даты. Можно добавить период дат.</li><li>В каждой дате напишите тему занятия.</li><li>Если ученик был — поставьте оценку или оставьте пусто.</li><li>Если отсутствовал — нажмите Н, У или Б. Кнопка × очищает отметку.</li><li>Заголовки блоков сворачивают разделы, чтобы они не мешали.</li><li>Фильтр показывает учеников с пропусками, двойками, без оценок или предупреждениями.</li><li>Резервная копия сохраняет все данные в JSON.</li><li>Аналитика считает средний балл и посещаемость по ученику, группе или всем группам предмета.</li><li>На телефоне таблицу можно листать горизонтальным свайпом. Колонка действий скрывается, чтобы таблица не была слишком широкой.</li><li>В теме «Свой градиент» можно выбрать три цвета сверху справа и нажать OK.</li></ol><button id="closeInfoBtn" type="button">Закрыть</button></div></div>
 <div id="notesModal" class="modal-backdrop"><div class="modal"><h2>Заметки ученика</h2><div class="row"><div><label for="notesStudent">Ученик</label><select id="notesStudent"></select></div></div><textarea id="notesText" class="notes-area" maxlength="2000" placeholder="Напишите заметку..."></textarea><div class="row" style="margin-top:12px"><button id="saveNotesBtn">Сохранить заметку</button><button class="secondary" id="closeNotesBtn">Закрыть</button></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 var STORAGE_KEY='attendanceDiaryFullFinalV1',THEME_KEY='attendanceDiaryTheme';
 var data=loadData(),highlightedDate='',showProblemHighlight=false;
@@ -1313,5 +1317,196 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   <span>Тестировщик и дизайнер Малов Игорь</span>
 </footer>
 
+
+<script>
+/* --- Безопасный импорт Excel/CSV для учителя --- */
+(function(){
+  function getUser(){try{return JSON.parse(localStorage.getItem('journalCurrentUser')||'null')}catch(e){return null}}
+  function isTeacher(){var u=getUser();return u&&u.role==='teacher'}
+  function byId(id){return document.getElementById(id)}
+  function showImportResult(msg, type){var box=byId('excelImportResult');if(!box)return;box.style.display='block';box.className='empty '+(type==='error'?'import-error':type==='warn'?'import-warn':'import-ok');box.innerHTML=msg}
+  function norm(s){return String(s||'').trim()}
+  function low(s){return norm(s).toLowerCase().replace(/ё/g,'е')}
+  function findVal(row, names){
+    var keys=Object.keys(row||{});
+    for(var i=0;i<names.length;i++){
+      var want=low(names[i]);
+      for(var k=0;k<keys.length;k++) if(low(keys[k])===want) return row[keys[k]];
+    }
+    for(var i2=0;i2<names.length;i2++){
+      var want2=low(names[i2]);
+      for(var k2=0;k2<keys.length;k2++) if(low(keys[k2]).indexOf(want2)!==-1) return row[keys[k2]];
+    }
+    return '';
+  }
+  function statusCode(v){
+    var x=low(v);
+    if(!x) return '';
+    if(x==='н'||x.indexOf('прог')!==-1||x.indexOf('absent')!==-1) return 'absent';
+    if(x==='у'||x.indexOf('уваж')!==-1||x.indexOf('excused')!==-1) return 'excused';
+    if(x==='б'||x.indexOf('бол')!==-1||x.indexOf('sick')!==-1) return 'sick';
+    return '';
+  }
+  function excelDateToInput(v){
+    if(!v && v!==0) return '';
+    if(v instanceof Date && !isNaN(v)) return v.toISOString().slice(0,10);
+    if(typeof v==='number'){
+      var d=new Date(Math.round((v-25569)*86400*1000));
+      if(!isNaN(d)) return d.toISOString().slice(0,10);
+    }
+    var s=norm(v);
+    if(!s) return '';
+    var m=s.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})$/); if(m) return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+    var m2=s.match(/^(\d{1,2})[.\/\-](\d{1,2})[.\/\-](\d{4})$/); if(m2) return m2[3]+'-'+String(m2[2]).padStart(2,'0')+'-'+String(m2[1]).padStart(2,'0');
+    return '';
+  }
+  function getCurrentSubjectSafe(){try{return getCurrentSubject()}catch(e){return null}}
+  function getCurrentGroupSafe(){try{return getCurrentGroup()}catch(e){return null}}
+  function findSubject(name){
+    name=norm(name); if(!name) return null;
+    for(var i=0;i<(data.subjects||[]).length;i++) if(low(data.subjects[i].name)===low(name)) return data.subjects[i];
+    return null;
+  }
+  function ensureSubject(name){
+    var s=findSubject(name); if(s) return s;
+    s={id:makeId(),name:norm(name),groups:[]}; data.subjects.push(s); return s;
+  }
+  function findGroup(subject, name){
+    name=norm(name); if(!subject||!name) return null;
+    subject.groups=subject.groups||[];
+    for(var i=0;i<subject.groups.length;i++) if(low(subject.groups[i].name)===low(name)) return subject.groups[i];
+    return null;
+  }
+  function ensureGroup(subject, name){
+    var g=findGroup(subject,name); if(g) return g;
+    g={id:makeId(),name:norm(name),students:[],dates:[],topics:{},attendance:{},grades:{},notes:{}}; subject.groups.push(g); return g;
+  }
+  function findStudent(group, fio){
+    fio=norm(fio); if(!group||!fio) return null;
+    group.students=group.students||[];
+    for(var i=0;i<group.students.length;i++) if(low(group.students[i].name)===low(fio)) return group.students[i];
+    return null;
+  }
+  function ensureStudent(group, fio){
+    var st=findStudent(group,fio); if(st) return st;
+    st={id:makeId(),name:norm(fio)}; group.students.push(st); return st;
+  }
+  function addDateIfNeeded(group,date){
+    if(!date) return;
+    ensureGroupFields(group);
+    if(group.dates.indexOf(date)===-1){group.dates.push(date);group.dates.sort()}
+    if(!group.attendance[date]) group.attendance[date]={};
+    if(!group.grades[date]) group.grades[date]={};
+    if(!group.topics[date]) group.topics[date]='';
+  }
+  function rowsFromCsv(text){
+    var sep=(text.split('\n')[0]||'').indexOf(';')!==-1?';':',';
+    var lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(function(x){return x.trim()});
+    if(!lines.length)return [];
+    var headers=lines[0].split(sep).map(function(x){return x.trim()});
+    return lines.slice(1).map(function(line){var vals=line.split(sep);var o={};headers.forEach(function(h,i){o[h]=vals[i]||''});return o});
+  }
+  function rowsFromHtml(text){
+    var doc=new DOMParser().parseFromString(text,'text/html');
+    var table=doc.querySelector('table'); if(!table) return [];
+    var trs=[].slice.call(table.querySelectorAll('tr'));
+    if(trs.length<2) return [];
+    var heads=[].slice.call(trs[0].children).map(function(c){return c.textContent.trim()});
+    return trs.slice(1).map(function(tr){var o={};[].slice.call(tr.children).forEach(function(td,i){o[heads[i]||('col'+i)]=td.textContent.trim()});return o});
+  }
+  function normalizeRows(rawRows){
+    return (rawRows||[]).map(function(r){
+      return {
+        fio: norm(findVal(r,['ФИО','Ученик','Студент','Имя','ФИО студента'])),
+        subject: norm(findVal(r,['Предмет','subject'])),
+        group: norm(findVal(r,['Группа','group'])),
+        date: excelDateToInput(findVal(r,['Дата','date','Дата занятия'])),
+        grade: norm(findVal(r,['Оценка','grade','Балл'])),
+        status: statusCode(findVal(r,['Статус','Посещаемость','Н/У/Б','Пропуск'])),
+        topic: norm(findVal(r,['Тема','topic','Тема занятия']))
+      }
+    }).filter(function(r){return r.fio || r.date || r.topic});
+  }
+  function importRows(rows){
+    if(!isTeacher()) throw new Error('Импорт доступен только учителю');
+    var curS=getCurrentSubjectSafe(), curG=getCurrentGroupSafe();
+    var addedStudents=0, addedDates=0, changedCells=0, skipped=0;
+    rows.forEach(function(r){
+      if(!r.fio){skipped++;return}
+      var subjectName=r.subject || (curS&&curS.name) || '';
+      var groupName=r.group || (curG&&curG.name) || '';
+      if(!subjectName || !groupName){skipped++;return}
+      var s=ensureSubject(subjectName);
+      var g=ensureGroup(s,groupName);
+      ensureGroupFields(g);
+      var existed=!!findStudent(g,r.fio);
+      var st=ensureStudent(g,r.fio);
+      if(!existed) addedStudents++;
+      if(r.date){
+        var before=(g.dates||[]).indexOf(r.date)!==-1;
+        addDateIfNeeded(g,r.date);
+        if(!before) addedDates++;
+        if(r.topic) g.topics[r.date]=r.topic;
+        if(r.status){g.attendance[r.date][st.id]=r.status;g.grades[r.date][st.id]='';changedCells++}
+        else if(r.grade){g.grades[r.date][st.id]=r.grade;g.attendance[r.date][st.id]='';changedCells++}
+      }
+    });
+    data.scale=scaleSelect.value;
+    saveData();
+    renderSubjects(curS&&curS.id);renderGroups(curG&&curG.id);renderTable();
+    if(typeof refreshGroupAccessSelect==='function') refreshGroupAccessSelect();
+    showImportResult('Импорт завершён: добавлено учеников — <b>'+addedStudents+'</b>, дат — <b>'+addedDates+'</b>, оценок/статусов — <b>'+changedCells+'</b>, пропущено строк — <b>'+skipped+'</b>.','ok');
+  }
+  function readFile(file){
+    return new Promise(function(resolve,reject){
+      var ext=(file.name.split('.').pop()||'').toLowerCase();
+      var reader=new FileReader();
+      reader.onerror=function(){reject(new Error('Не удалось прочитать файл'))};
+      reader.onload=function(){
+        try{
+          if((ext==='xlsx'||ext==='xls') && window.XLSX){
+            var wb=XLSX.read(reader.result,{type:'array',cellDates:true});
+            var ws=wb.Sheets[wb.SheetNames[0]];
+            resolve(XLSX.utils.sheet_to_json(ws,{defval:''}));
+          }else{
+            var text=reader.result;
+            if(String(text).indexOf('<table')!==-1) resolve(rowsFromHtml(text));
+            else resolve(rowsFromCsv(text));
+          }
+        }catch(e){reject(e)}
+      };
+      if((ext==='xlsx'||ext==='xls') && window.XLSX) reader.readAsArrayBuffer(file); else reader.readAsText(file,'utf-8');
+    });
+  }
+  async function handleImport(){
+    var input=byId('excelImportInput');
+    var file=input&&input.files&&input.files[0];
+    if(!file) return alert('Выберите Excel или CSV файл');
+    try{
+      showImportResult('Читаю файл...', 'warn');
+      var raw=await readFile(file);
+      var rows=normalizeRows(raw);
+      if(!rows.length) throw new Error('В файле нет подходящих строк. Проверьте заголовки столбцов.');
+      importRows(rows);
+      input.value='';
+    }catch(e){showImportResult('Ошибка импорта: '+String(e.message||e), 'error');}
+  }
+  function downloadTemplate(){
+    var rows=[
+      ['ФИО','Предмет','Группа','Дата','Оценка','Статус','Тема'],
+      ['Иванов Иван','Математика','10-А','2026-09-01','5','','Повторение'],
+      ['Петров Пётр','Математика','10-А','2026-09-01','','Н','Повторение']
+    ];
+    var csv=rows.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"'}).join(';')}).join('\n');
+    var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='shablon_importa_zhurnala.csv';document.body.appendChild(a);a.click();a.remove();
+  }
+  function bind(){
+    var b=byId('importExcelBtn'); if(b) b.onclick=handleImport;
+    var t=byId('downloadImportTemplateBtn'); if(t) t.onclick=downloadTemplate;
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
+})();
+</script>
 </body>
 </html>
