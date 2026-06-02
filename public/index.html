@@ -75,6 +75,7 @@ body.theme-midnight,body.theme-blue,body.theme-violet,body.theme-night,body.them
 .import-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-top:10px}.import-result{margin-top:10px}.import-ok{border-left:4px solid #198754}.import-warn{border-left:4px solid #f59e0b}.import-error{border-left:4px solid #dc3545}.import-mini{font-size:13px;color:var(--muted);margin-top:6px}
 </style>
 <!-- theme fix: preserve body classes when switching themes -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body class="theme-light app-locked">
 <div id="authScreen">
@@ -322,7 +323,7 @@ function buildJournalMatrixRows(s,g){
   return rows;
 }
 function saveJournalMatrixWorkbook(rows,baseName){
-  if(window.XLSX){
+  if(window.XLSX && XLSX.utils && XLSX.writeFile){
     var ws=XLSX.utils.aoa_to_sheet(rows);
     ws['!cols']=[{wch:6},{wch:34}].concat((rows[3]||[]).slice(2).map(function(){return {wch:14}}));
     var wb=XLSX.utils.book_new();
@@ -330,11 +331,10 @@ function saveJournalMatrixWorkbook(rows,baseName){
     XLSX.writeFile(wb,baseName+'.xlsx');
     return;
   }
-  var html='<html><head><meta charset="UTF-8"></head><body><table border="1">';
-  rows.forEach(function(row){html+='<tr>';row.forEach(function(cell,i){var tag=(row[0]==='№'||row[0]==='ФИО')?'th':'td';html+='<'+tag+'>'+excelEscape(cell)+'</'+tag+'>'});html+='</tr>'});
-  html+='</table></body></html>';
-  var blob=new Blob(['\ufeff'+html],{type:'application/vnd.ms-excel;charset=utf-8'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'.xls';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+  var csv=rows.map(function(row){return row.map(function(cell){return '"'+String(cell==null?'':cell).replace(/"/g,'""')+'"'}).join(';')}).join('\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=baseName+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+  alert('Библиотека Excel не загрузилась, поэтому файл сохранён как CSV. Обновите страницу и попробуйте ещё раз для .xlsx.');
 }
 function toDateInputValue(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}function formatDate(d){var p=(d||'').split('-');return p.length===3?p[2]+'.'+p[1]+'.'+p[0]:d}function shortStatusText(s){return s==='absent'?'Н — прогул':s==='excused'?'У — уваж.':s==='sick'?'Б — больн.':'—'}function statusText(s){return s==='absent'?'Прогул':s==='excused'?'Уважительная':s==='sick'?'Больничный':'Очистить'}function escapeHtml(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}function esc(t){return escapeHtml(t)}function excelEscape(v){return escapeHtml(v==null?'':v)}function safeFileName(n){return String(n||'journal').replace(/[\\/:*?\"<>|]/g,'_').slice(0,120)}
 initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups('');renderTable();
@@ -1409,7 +1409,17 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   }
   function readFile(file){return new Promise(function(resolve,reject){var ext=(file.name.split('.').pop()||'').toLowerCase();var r=new FileReader();r.onerror=function(){reject(new Error('Не удалось прочитать файл'))};r.onload=function(){try{if((ext==='xlsx'||ext==='xls')&&window.XLSX){var wb=XLSX.read(r.result,{type:'array',cellDates:true});var ws=wb.Sheets[wb.SheetNames[0]];resolve(XLSX.utils.sheet_to_json(ws,{header:1,defval:''}))}else{var text=String(r.result||'');resolve(text.indexOf('<table')!==-1?rowsFromHtml(text):rowsFromCsv(text))}}catch(e){reject(e)}};if((ext==='xlsx'||ext==='xls')&&window.XLSX)r.readAsArrayBuffer(file);else r.readAsText(file,'utf-8')})}
   async function handleImport(){var input=byId('excelImportInput'),file=input&&input.files&&input.files[0];if(!file)return alert('Выберите файл Excel или CSV');try{showImportResult('Читаю файл...','warn');var rows=await readFile(file);importMatrix(rows);input.value=''}catch(e){showImportResult('Ошибка импорта: '+String(e.message||e),'error')}}
-  function downloadImportTemplate(){var rows=[['Предмет','Математика'],['Группа','10-А'],[],['№','ФИО','01.09.2026','02.09.2026'],[1,'Иванов Иван','5','Н — прогул'],[2,'Петров Пётр','У — уваж.','4']];if(typeof saveJournalMatrixWorkbook==='function')saveJournalMatrixWorkbook(rows,'shablon_importa_zhurnala');else alert('Функция экспорта не найдена')}
+  function downloadImportTemplate(){
+    var rows=[
+      ['Предмет','Математика'],
+      ['Группа','10-А'],
+      [],
+      ['№','ФИО','01.09.2026','02.09.2026'],
+      [1,'Иванов Иван','5','Н — прогул'],
+      [2,'Петров Пётр','У — уваж.','4']
+    ];
+    saveJournalMatrixWorkbook(rows,'shablon_importa_matrix');
+  }
   function bind(){var b=byId('importExcelBtn');if(b)b.onclick=handleImport;var t=byId('downloadImportTemplateBtn');if(t)t.onclick=downloadImportTemplate}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();
