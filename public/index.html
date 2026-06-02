@@ -493,7 +493,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
       fetch('/api/state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: currentUser, data: data })
+        body: JSON.stringify({ user: currentUser, authToken: currentUser.authToken, data: data })
       }).then(function(res){
         if(!res.ok) return res.json().then(function(body){ throw new Error(body.message || 'Ошибка сохранения'); });
       }).catch(function(error){
@@ -513,7 +513,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     var res = await fetch('/api/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(currentUser)
+      body: JSON.stringify({ authToken: currentUser && currentUser.authToken })
     });
 
     var body = await res.json();
@@ -556,6 +556,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
       }
 
       currentUser = body.user;
+      currentUser.authToken = body.authToken || '';
       localStorage.setItem('journalCurrentUser', JSON.stringify(currentUser));
 
       await loadJournalFromServer();
@@ -640,7 +641,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
       var res = await fetch('/api/group-users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: currentUser })
+        body: JSON.stringify({ user: currentUser, authToken: currentUser.authToken })
       });
       var body = await res.json();
       if(!res.ok) throw new Error(body.message || 'Ошибка');
@@ -679,7 +680,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
       var res = await fetch('/api/group-user-delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: currentUser, username: username })
+        body: JSON.stringify({ user: currentUser, authToken: currentUser.authToken, username: username })
       });
       var body = await res.json();
       if(!res.ok) throw new Error(body.message || 'Ошибка');
@@ -705,7 +706,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
       var res = await fetch('/api/group-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: currentUser, username: username, password: password, groupName: groupName })
+        body: JSON.stringify({ user: currentUser, authToken: currentUser.authToken, username: username, password: password, groupName: groupName })
       });
       var body = await res.json();
       if(!res.ok) throw new Error(body.message || 'Ошибка');
@@ -896,7 +897,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   window.downloadBackup = function(){
     var u=currentUser();
     if(!u || u.role!=='teacher') return alert('Резервную копию может скачать только учитель');
-    fetch('/api/backup/export', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u})})
+    fetch('/api/backup/export', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u, authToken:u.authToken})})
       .then(function(res){return safeJson(res).then(function(body){ if(!res.ok) throw new Error(body.message||'Ошибка'); return body; });})
       .then(function(body){
         var blob=new Blob([JSON.stringify(body,null,2)], {type:'application/json'});
@@ -920,7 +921,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
       try{
         var backup=JSON.parse(reader.result);
         setSaveStatus('Восстанавливаю...', 'saving');
-        fetch('/api/backup/import', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u, backup:backup})})
+        fetch('/api/backup/import', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u, authToken:u.authToken, backup:backup})})
           .then(function(res){return safeJson(res).then(function(body){ if(!res.ok) throw new Error(body.message||'Ошибка'); return body; });})
           .then(function(){ setSaveStatus('Копия восстановлена', 'saved'); location.reload(); })
           .catch(function(err){ setSaveStatus('Ошибка восстановления', 'error'); alert('Не удалось восстановить копию: '+err.message); });
@@ -938,7 +939,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   function logActivity(action, details){
     var u=currentUser();
     if(!u || u.role!=='teacher') return;
-    fetch('/api/activity-add', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u, action:action, details:details||''})}).catch(function(){});
+    fetch('/api/activity-add', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u, authToken:u.authToken, action:action, details:details||''})}).catch(function(){});
   }
 
   function ensureBulkStudentsUi(){
@@ -998,7 +999,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     if(!u || u.role!=='teacher') return;
     box.className='empty';
     box.textContent='Загрузка истории...';
-    fetch('/api/activity-list', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u})})
+    fetch('/api/activity-list', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u, authToken:u.authToken})})
       .then(function(res){return safeJson(res).then(function(body){if(!res.ok) throw new Error(body.message||'Ошибка'); return body;});})
       .then(function(body){
         var items=body.items||[];
@@ -1101,6 +1102,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     var u=getUser(); if(!u || u.role!=='teacher') return alert('Добавлять ДЗ может только учитель');
     var body={
       user:u,
+      authToken:u.authToken,
       id:editingHomeworkId,
       subjectName:(document.getElementById('homeworkSubject')||{}).value||'',
       groupName:(document.getElementById('homeworkGroup')||{}).value||'',
@@ -1122,7 +1124,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     var u=getUser(); if(!u || u.role!=='teacher') return alert('Удалять ДЗ может только учитель');
     if(!confirm('Удалить домашнее задание?')) return;
     try{
-      var res=await fetch('/api/homework-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u,id:id})});
+      var res=await fetch('/api/homework-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u, authToken:u.authToken, id:id})});
       var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
       await loadHomeworkList();
     }catch(e){alert('Не удалось удалить ДЗ: '+e.message)}
@@ -1171,7 +1173,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     var u=getUser(); if(!u) return;
     fillHomeworkSelects();
     try{
-      var res=await fetch('/api/homework-list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u})});
+      var res=await fetch('/api/homework-list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u, authToken:u.authToken})});
       var json=await safeJson(res); if(!res.ok) throw new Error(json.message||'Ошибка');
       renderHomework(json.items||[]);
     }catch(e){var box=document.getElementById('homeworkList'); if(box) box.innerHTML='<div class="empty">Ошибка загрузки ДЗ: '+escLocal(e.message)+'</div>';}
@@ -1226,7 +1228,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   async function save(){
     var u=user(); if(!u || u.role!=='teacher') return alert('Добавлять ДЗ может только учитель');
     fillSelects();
-    var body={user:u,id:editId,subjectName:(document.getElementById('homeworkSubject')||{}).value||'',groupName:(document.getElementById('homeworkGroup')||{}).value||'',dueDate:(document.getElementById('homeworkDueDate')||{}).value||'',title:(document.getElementById('homeworkTitle')||{}).value||'',description:(document.getElementById('homeworkDescription')||{}).value||'',links:(document.getElementById('homeworkLinks')||{}).value||''};
+    var body={user:u,authToken:u.authToken,id:editId,subjectName:(document.getElementById('homeworkSubject')||{}).value||'',groupName:(document.getElementById('homeworkGroup')||{}).value||'',dueDate:(document.getElementById('homeworkDueDate')||{}).value||'',title:(document.getElementById('homeworkTitle')||{}).value||'',description:(document.getElementById('homeworkDescription')||{}).value||'',links:(document.getElementById('homeworkLinks')||{}).value||''};
     body.subjectName=body.subjectName.trim(); body.groupName=body.groupName.trim(); body.title=body.title.trim(); body.description=body.description.trim(); body.links=body.links.trim();
     if(!body.subjectName) return alert('Выберите предмет для ДЗ');
     if(!body.groupName) return alert('Выберите группу для ДЗ');
@@ -1234,7 +1236,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     try{setStatus('Сохраняю ДЗ...','saving'); var res=await fetch('/api/homework-save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); var r=await json(res); if(!res.ok) throw new Error(r.message||'Ошибка сохранения'); clearForm(); setStatus(r.message||'ДЗ сохранено','saved'); await load();}
     catch(e){setStatus('Ошибка сохранения ДЗ','error'); alert('Не удалось добавить ДЗ: '+e.message)}
   }
-  async function del(id){var u=user(); if(!u || u.role!=='teacher') return alert('Удалять ДЗ может только учитель'); if(!confirm('Удалить домашнее задание?'))return; try{var res=await fetch('/api/homework-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u,id:id})}); var r=await json(res); if(!res.ok)throw new Error(r.message||'Ошибка удаления'); setStatus('ДЗ удалено','saved'); await load();}catch(e){alert('Не удалось удалить ДЗ: '+e.message)}}
+  async function del(id){var u=user(); if(!u || u.role!=='teacher') return alert('Удалять ДЗ может только учитель'); if(!confirm('Удалить домашнее задание?'))return; try{var res=await fetch('/api/homework-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u, authToken:u.authToken, id:id})}); var r=await json(res); if(!res.ok)throw new Error(r.message||'Ошибка удаления'); setStatus('ДЗ удалено','saved'); await load();}catch(e){alert('Не удалось удалить ДЗ: '+e.message)}}
   function edit(item){editId=item._id||''; fillSelects(); var s=document.getElementById('homeworkSubject'); if(s){s.value=item.subjectName||''; fillSelects()} var g=document.getElementById('homeworkGroup'); if(g)g.value=item.groupName||''; var due=document.getElementById('homeworkDueDate'); if(due)due.value=item.dueDate||''; var t=document.getElementById('homeworkTitle'); if(t)t.value=item.title||''; var d=document.getElementById('homeworkDescription'); if(d)d.value=item.description||''; var l=document.getElementById('homeworkLinks'); if(l)l.value=item.links||''; var b=document.getElementById('saveHomeworkBtn'); if(b)b.textContent='Сохранить изменения'; var p=document.getElementById('homeworkPanel'); if(p)p.scrollIntoView({behavior:'smooth',block:'start'});}
   function render(items){
     cachedHomework=items||[]; var box=document.getElementById('homeworkList'); if(!box)return; var subj=(document.getElementById('homeworkFilterSubject')||{}).value||''; var mode=(document.getElementById('homeworkFilterMode')||{}).value||'actual';
@@ -1245,7 +1247,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
     box.querySelectorAll('[data-hw-edit]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-hw-edit'); var item=cachedHomework.find(function(x){return x._id===id}); if(item) edit(item)}});
     box.querySelectorAll('[data-hw-copy]').forEach(function(b){b.onclick=function(){var card=b.closest('.homework-card'); if(card && navigator.clipboard) navigator.clipboard.writeText(card.innerText).then(function(){alert('ДЗ скопировано')})}});
   }
-  async function load(){var u=user(); if(!u)return; fillSelects(); try{var res=await fetch('/api/homework-list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u})}); var r=await json(res); if(!res.ok)throw new Error(r.message||'Ошибка загрузки'); render(r.items||[])}catch(e){var box=document.getElementById('homeworkList'); if(box)box.innerHTML='<div class="empty">Ошибка загрузки ДЗ: '+escH(e.message)+'</div>'}}
+  async function load(){var u=user(); if(!u)return; fillSelects(); try{var res=await fetch('/api/homework-list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u, authToken:u.authToken})}); var r=await json(res); if(!res.ok)throw new Error(r.message||'Ошибка загрузки'); render(r.items||[])}catch(e){var box=document.getElementById('homeworkList'); if(box)box.innerHTML='<div class="empty">Ошибка загрузки ДЗ: '+escH(e.message)+'</div>'}}
   function bind(){fillSelects(); var b=document.getElementById('saveHomeworkBtn'); if(b)b.onclick=save; var c=document.getElementById('clearHomeworkFormBtn'); if(c)c.onclick=clearForm; var r=document.getElementById('refreshHomeworkBtn'); if(r)r.onclick=load; var s=document.getElementById('homeworkSubject'); if(s)s.onchange=fillSelects; var fs=document.getElementById('homeworkFilterSubject'); if(fs)fs.onchange=function(){render(cachedHomework)}; var fm=document.getElementById('homeworkFilterMode'); if(fm)fm.onchange=function(){render(cachedHomework)};}
   window.loadHomeworkList=load; window.refreshHomeworkSelects=fillSelects;
   var oldRS=window.renderSubjects; if(typeof oldRS==='function'){window.renderSubjects=function(){oldRS.apply(this,arguments); setTimeout(fillSelects,0)}; try{renderSubjects=window.renderSubjects}catch(e){}}
@@ -1346,7 +1348,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
       if(newP!==rep){ if(msg) msg.textContent='Новые пароли не совпадают'; return; }
       if(newP.length<6){ if(msg) msg.textContent='Минимум 6 символов'; return; }
       if(msg){msg.textContent='Сохраняю...'; msg.className='auth-msg';}
-      fetch('/api/teacher-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u,oldPassword:oldP,newPassword:newP})})
+      fetch('/api/teacher-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:u, authToken:u.authToken, oldPassword:oldP,newPassword:newP})})
         .then(function(res){return safeJson(res).then(function(body){if(!res.ok) throw new Error(body.message||'Ошибка'); return body;});})
         .then(function(body){
           if(msg){msg.textContent=body.message||'Пароль изменён'; msg.className='auth-msg success';}
@@ -1430,5 +1432,7 @@ initTheme();scaleSelect.value=data.scale||'2-5';renderSubjects('');renderGroups(
   <span>Тестировщик и дизайнер Малов Игорь</span>
 </footer>
 
+
+<!-- audited-stable-session-security 2026-06-02 -->
 </body>
 </html>

@@ -3,11 +3,19 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const path = require("path");
+const crypto = require("crypto");
 require("dotenv").config();
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "25mb" }));
+app.use(express.json({ limit: "8mb" }));
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "same-origin");
+  res.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+  next();
+});
 app.use(express.static(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 3000;
@@ -78,6 +86,63 @@ const TEACHER_PASSWORD = process.env.TEACHER_PASSWORD;
 const loginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOGIN_BLOCK_MS = 60 * 1000;
+
+const sessions = new Map();
+const SESSION_TTL_MS = 1000 * 60 * 60 * 8;
+
+function createSession(user) {
+  const token = crypto.randomBytes(32).toString("hex");
+  sessions.set(token, {
+    username: user.username,
+    role: user.role,
+    groupName: user.groupName || "",
+    fullName: user.fullName || "",
+    expiresAt: Date.now() + SESSION_TTL_MS
+  });
+  return token;
+}
+
+function getSessionFromReq(req) {
+  const token =
+    (req.body && req.body.authToken) ||
+    (req.headers.authorization && String(req.headers.authorization).replace(/^Bearer\s+/i, "")) ||
+    "";
+  if (!token) return null;
+  const session = sessions.get(String(token));
+  if (!session) return null;
+  if (session.expiresAt < Date.now()) {
+    sessions.delete(String(token));
+    return null;
+  }
+  session.expiresAt = Date.now() + SESSION_TTL_MS;
+  return session;
+}
+
+function requireTeacher(req, res) {
+  const session = getSessionFromReq(req);
+  if (!session || session.role !== "teacher") {
+    res.status(403).json({ message: "Доступ разрешён только учителю. Войдите заново." });
+    return null;
+  }
+  return session;
+}
+
+function requireUser(req, res) {
+  const session = getSessionFromReq(req);
+  if (!session) {
+    res.status(401).json({ message: "Сессия истекла. Войдите заново." });
+    return null;
+  }
+  return session;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, session] of sessions.entries()) {
+    if (session.expiresAt < now) sessions.delete(token);
+  }
+}, 1000 * 60 * 30);
+
 
 function getLoginKey(req, username) {
   return String(username || "").trim().toLowerCase() + "|" + (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "local");
@@ -182,11 +247,10 @@ app.get("/api/test", (req, res) => {
 
 app.post("/api/setup", async (req, res) => {
   try {
-    await ensureTeacherAccount();
     await ensureState();
-    res.json({ message: "Учётная запись учителя готова" });
+    res.json({ message: "Система уже подготовлена" });
   } catch (error) {
-    res.status(500).json({ message: "Ошибка подготовки системы", error: error.message });
+    res.status(500).json({ message: "Ошибка подготовки системы" });
   }
 });
 
@@ -223,8 +287,11 @@ app.post("/api/login", async (req, res) => {
 
     loginAttempts.delete(loginKey);
 
+    const authToken = createSession(user);
+
     res.json({
       message: "Вход выполнен",
+      authToken,
       user: {
         username: user.username,
         role: user.role,
@@ -239,11 +306,10 @@ app.post("/api/login", async (req, res) => {
 
 app.post("/api/teacher-password", async (req, res) => {
   try {
-    const { user, oldPassword, newPassword } = req.body || {};
-
-    if (!user || user.role !== "teacher") {
-      return res.status(403).json({ message: "Менять пароль может только учитель" });
-    }
+    const session = requireTeacher(req, res);
+    if (!session) return;
+    const { oldPassword, newPassword } = req.body || {};
+    const user = session;
 
     if (!oldPassword || !newPassword) {
       return res.status(400).json({ message: "Введите старый и новый пароль" });
@@ -253,7 +319,7 @@ app.post("/api/teacher-password", async (req, res) => {
       return res.status(400).json({ message: "Новый пароль должен быть минимум 6 символов" });
     }
 
-    const teacher = await User.findOne({ username: user.username, role: "teacher" });
+    const teacher = await User.findOne({ username: session.username, role: "teacher" });
     if (!teacher) return res.status(404).json({ message: "Учитель не найден" });
 
     const ok = await bcrypt.compare(String(oldPassword), teacher.passwordHash);
@@ -271,11 +337,8 @@ app.post("/api/teacher-password", async (req, res) => {
 
 app.post("/api/group-users", async (req, res) => {
   try {
-    const user = req.body.user || {};
-
-    if (user.role !== "teacher") {
-      return res.status(403).json({ message: "Список доступов может смотреть только учитель" });
-    }
+    const user = requireTeacher(req, res);
+    if (!user) return;
 
     const users = await User.find({ role: "student" })
       .select("username groupName fullName -_id")
@@ -292,11 +355,9 @@ app.post("/api/group-users", async (req, res) => {
 
 app.post("/api/group-user", async (req, res) => {
   try {
-    const { user, username, password, groupName } = req.body || {};
-
-    if (!user || user.role !== "teacher") {
-      return res.status(403).json({ message: "Создавать доступ может только учитель" });
-    }
+    const user = requireTeacher(req, res);
+    if (!user) return;
+    const { username, password, groupName } = req.body || {};
 
     if (!username || !groupName) {
       return res.status(400).json({ message: "Нужны логин и группа" });
@@ -341,17 +402,15 @@ app.post("/api/group-user", async (req, res) => {
 
 app.post("/api/group-user-delete", async (req, res) => {
   try {
-    const { user, username } = req.body || {};
-
-    if (!user || user.role !== "teacher") {
-      return res.status(403).json({ message: "Удалять доступ может только учитель" });
-    }
+    const user = requireTeacher(req, res);
+    if (!user) return;
+    const { username } = req.body || {};
 
     if (!username) {
       return res.status(400).json({ message: "Не указан логин для удаления" });
     }
 
-    if (username === "teacher") {
+    if (username === "teacher" || username === TEACHER_USERNAME) {
       return res.status(400).json({ message: "Нельзя удалить логин учителя" });
     }
 
@@ -379,17 +438,14 @@ app.delete("/api/group-access/:username", async (req, res) => {
     const username = req.params.username;
 
     // Для DELETE часть браузеров/фронтендов передаёт user в body.
-    const { user } = req.body || {};
-
-    if (!user || user.role !== "teacher") {
-      return res.status(403).json({ message: "Удалять доступ может только учитель" });
-    }
+    const user = requireTeacher(req, res);
+    if (!user) return;
 
     if (!username) {
       return res.status(400).json({ message: "Не указан логин для удаления" });
     }
 
-    if (username === "teacher") {
+    if (username === "teacher" || username === TEACHER_USERNAME) {
       return res.status(400).json({ message: "Нельзя удалить логин учителя" });
     }
 
@@ -413,10 +469,8 @@ app.post("/api/state", async (req, res) => {
   try {
     // Сохранение данных. Разрешено только учителю.
     if (req.body && req.body.data) {
-      const user = req.body.user || {};
-      if (user.role !== "teacher") {
-        return res.status(403).json({ message: "Сохранять данные может только учитель" });
-      }
+      const user = requireTeacher(req, res);
+      if (!user) return;
 
       await AppState.findOneAndUpdate(
         { key: "main" },
@@ -429,7 +483,8 @@ app.post("/api/state", async (req, res) => {
 
     // Загрузка данных.
     const state = await ensureState();
-    const user = req.body || {};
+    const user = requireUser(req, res);
+    if (!user) return;
 
     if (user.role === "student") {
       return res.json({ data: filterDataForStudent(state.data, user) });
@@ -444,10 +499,8 @@ app.post("/api/state", async (req, res) => {
 
 app.post("/api/backup/export", async (req, res) => {
   try {
-    const user = req.body.user || {};
-    if (user.role !== "teacher") {
-      return res.status(403).json({ message: "Резервную копию может скачать только учитель" });
-    }
+    const user = requireTeacher(req, res);
+    if (!user) return;
 
     const state = await ensureState();
     const groupUsers = await User.find({ role: "student" })
@@ -472,10 +525,8 @@ app.post("/api/backup/export", async (req, res) => {
 
 app.post("/api/backup/import", async (req, res) => {
   try {
-    const user = req.body.user || {};
-    if (user.role !== "teacher") {
-      return res.status(403).json({ message: "Резервную копию может восстановить только учитель" });
-    }
+    const user = requireTeacher(req, res);
+    if (!user) return;
 
     const backup = req.body.backup || {};
     const importedData = backup.data || backup;
@@ -515,10 +566,8 @@ app.post("/api/backup/import", async (req, res) => {
 
 app.post("/api/activity-list", async (req, res) => {
   try {
-    const user = req.body.user || {};
-    if (user.role !== "teacher") {
-      return res.status(403).json({ message: "Историю может смотреть только учитель" });
-    }
+    const user = requireTeacher(req, res);
+    if (!user) return;
 
     const items = await Activity.find({ action: { $ne: "Сохранение журнала" } }).sort({ createdAt: -1 }).limit(120).lean();
     res.json({ items });
@@ -529,10 +578,8 @@ app.post("/api/activity-list", async (req, res) => {
 
 app.post("/api/activity-add", async (req, res) => {
   try {
-    const user = req.body.user || {};
-    if (user.role !== "teacher") {
-      return res.status(403).json({ message: "Историю может записывать только учитель" });
-    }
+    const user = requireTeacher(req, res);
+    if (!user) return;
     await addActivity(user, req.body.action || "Действие", req.body.details || "");
     res.json({ message: "Записано" });
   } catch (error) {
@@ -543,7 +590,8 @@ app.post("/api/activity-add", async (req, res) => {
 
 app.post("/api/homework-list", async (req, res) => {
   try {
-    const user = req.body.user || {};
+    const user = requireUser(req, res);
+    if (!user) return;
     const filter = {};
 
     if (user.role === "student") {
@@ -568,10 +616,8 @@ app.post("/api/homework-list", async (req, res) => {
 
 app.post("/api/homework-save", async (req, res) => {
   try {
-    const user = req.body.user || {};
-    if (user.role !== "teacher") {
-      return res.status(403).json({ message: "Добавлять домашнее задание может только учитель" });
-    }
+    const user = requireTeacher(req, res);
+    if (!user) return;
 
     const subjectName = String(req.body.subjectName || "").trim().slice(0, 120);
     const groupName = String(req.body.groupName || "").trim().slice(0, 120);
@@ -612,10 +658,8 @@ app.post("/api/homework-save", async (req, res) => {
 
 app.post("/api/homework-delete", async (req, res) => {
   try {
-    const user = req.body.user || {};
-    if (user.role !== "teacher") {
-      return res.status(403).json({ message: "Удалять домашнее задание может только учитель" });
-    }
+    const user = requireTeacher(req, res);
+    if (!user) return;
 
     const id = String(req.body.id || "").trim();
     if (!id) return res.status(400).json({ message: "Не указан ID задания" });
